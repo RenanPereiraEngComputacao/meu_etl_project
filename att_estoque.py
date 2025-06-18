@@ -28,7 +28,7 @@ def main():
 
     pg_conn.close()
     print("✅ Conexão PostgreSQL fechada.")
-    print("✅ ETL finalizado com sucesso.")
+    print("✅ ETL finalizado com sucesso!")
 
 if __name__ == "__main__":
     main()
