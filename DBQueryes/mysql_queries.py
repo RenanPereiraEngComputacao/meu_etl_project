@@ -1,0 +1,17 @@
+#estoque saldo, reserva, referencias, cores e tamanhos
+def get_estoque_saldo_query():
+    return "SELECT seqrefer_bi, seqcores_bi, seqtaman_bi, seqgruarm_bi, estqtde_dc, estdata_dt FROM indestoquesaldo WHERE seqgruarm_bi = 1;"
+
+def get_reserva_query():
+    return "SELECT seqrefer_bi, seqcores_bi, seqtaman_bi, seqgruarm_bi, resqtde_dc FROM indreserva WHERE seqgruarm_bi = 1;"
+
+def get_referencias_query():
+    return "SELECT seqrefer_dc, refcodigo_ch, refdescri_ch FROM indrefer WHERE seqtipos_dc = 26;"
+
+def get_cores_query():
+    return "SELECT seqcores_dc, corcodigo_in, cordescri_ch FROM indcores;"
+
+def get_tamanhos_query():
+    return "SELECT seqtaman_dc, tamtama_ch FROM indtamanho;"
+
+#produtos
