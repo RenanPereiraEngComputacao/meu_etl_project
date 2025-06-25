@@ -1,7 +1,7 @@
 from DBconect.mysql_conn import get_mysql_connection
 from DBconect.postgres_conn import get_postgres_connection
 from DBQueryes import mysql_queries
-from DBtratament.process_data_estoque import process_data, insert_into_postgres_estoque
+from DBtratament.process_data_estoque import process_data_estoque, insert_into_postgres_estoque
 
 def fetch_data(query, conn):
     cursor = conn.cursor(dictionary=True)
@@ -21,7 +21,7 @@ def main():
         cores = fetch_data(mysql_queries.get_cores_query(), mysql_conn)
         tamanhos = fetch_data(mysql_queries.get_tamanhos_query(), mysql_conn)
         print("✅ Dados obtidos com sucesso do MySQL. Fechando conexão...")
-        resultado_final = process_data(saldos, reservas, referencias, cores, tamanhos)
+        resultado_final = process_data_estoque(saldos, reservas, referencias, cores, tamanhos)
         print("✅ Dados processados com sucesso. Inserindo no PostgreSQL...")
         insert_into_postgres_estoque(resultado_final, pg_conn)
     except Exception as e:

@@ -20,7 +20,7 @@ def main():
         print("✅ Produtos consultados no MySQL. Iniciando inserção no Postgres...")
 
         insert_into_postgres_produto(produtos, pg_conn)
-        print("✅ Produtos inseridos no Postgres com sucesso!")
+        print("✅ Produtos inseridos no Postgres com sucesso!!")
 
     except Exception as e:
         print(f"Erro no pipeline de produtos: {e}")
