@@ -1,4 +1,4 @@
-def process_data(saldos, reservas, referencias, cores, tamanhos):
+def process_data_estoque (saldos, reservas, referencias, cores, tamanhos):
     # Transforma listas em dicionários para acesso rápido
     ref_map = {r['seqrefer_dc']: r['refcodigo_ch'] for r in referencias}
     cor_map = {c['seqcores_dc']: (c['corcodigo_in'], c['cordescri_ch']) for c in cores}
@@ -47,7 +47,7 @@ def process_data(saldos, reservas, referencias, cores, tamanhos):
     return resultado_final
 
 
-def insert_into_postgres(data, conn):
+def insert_into_postgres_estoque(data, conn):
     cursor = conn.cursor()
     cursor.execute("TRUNCATE TABLE estoque_disponivel;")
     insert_sql = """
