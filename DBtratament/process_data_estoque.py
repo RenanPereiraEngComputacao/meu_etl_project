@@ -1,8 +1,11 @@
-def process_data_estoque (saldos, reservas, referencias, cores, tamanhos):
+import re
+def process_data_estoque (saldos, reservas, referencias, cores, tamanhos,barcodes):
     # Transforma listas em dicionários para acesso rápido
     ref_map = {r['seqrefer_dc']: r['refcodigo_ch'] for r in referencias}
     cor_map = {c['seqcores_dc']: (c['corcodigo_in'], c['cordescri_ch']) for c in cores}
     tam_map = {t['seqtaman_dc']: t['tamtama_ch'] for t in tamanhos}
+    barcode_map = {(b['seqrefer_dc'], b['seqcores_dc'], b['seqtaman_dc']): b['bargs1128_ch'] 
+                   for b in barcodes}
 
     # Filtra o saldo mais recente por chave
     saldo_ultimo = {}
@@ -28,16 +31,19 @@ def process_data_estoque (saldos, reservas, referencias, cores, tamanhos):
         corcodigo, cordescri = cor_map.get(seqcor, (None, "N/A"))
         tamtama = tam_map.get(seqtamanho, "N/A")
         refcodigo_formatado = refcodigo.replace('.', '-')
+        corajust = re.sub(r"\s*\(.*?\)", "", cordescri).strip()
+        barcode = barcode_map.get((seqrefer, seqcor, seqtamanho), "")
 
         # Campo indexado: refcodigo + corcodigo + tamtama
         indexado = f"{refcodigo_formatado}-{corcodigo}-{tamtama}"
+        # Variacao: corajust + tamtama
+        variacao = f"{corajust}-{tamtama}"
 
         resultado_final.append((
             indexado,
             refcodigo,
-            corcodigo,
-            cordescri,
-            tamtama,
+            variacao,
+            barcode,
             seqgruarm,
             estqtde,
             resqtde,
@@ -49,12 +55,17 @@ def process_data_estoque (saldos, reservas, referencias, cores, tamanhos):
 
 def insert_into_postgres_estoque(data, conn):
     cursor = conn.cursor()
-    cursor.execute("TRUNCATE TABLE estoque_disponivel;")
-    insert_sql = """
-        INSERT INTO estoque_disponivel
-        (indexado, refcodigo, corcodigo, cordescri, tamanho, armazenamento, fisico, reserva, disponivel)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
-    """
-    cursor.executemany(insert_sql, data)
-    conn.commit()
-    cursor.close()
+    try:
+        cursor.execute("TRUNCATE TABLE sku_variacao_estoque;")
+        insert_sql = """
+            INSERT INTO sku_variacao_estoque
+            (indexado, refcodigo, variacao, barcode, armazenamento, fisico, reserva, disponivel)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+        """
+        cursor.executemany(insert_sql, data)
+        conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao inserir dados no Postgres: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()

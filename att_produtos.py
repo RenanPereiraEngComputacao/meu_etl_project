@@ -1,6 +1,6 @@
 from DBconect.mysql_conn import get_mysql_connection3
 from DBconect.postgres_conn import get_postgres_connection
-from DBQueryes import mysql_queries  # Sua função que retorna a query correta
+from DBQueryes import mysql_queries  
 from DBtratament.process_data_produto import insert_into_postgres_produto
 
 def fetch_data(query, conn):

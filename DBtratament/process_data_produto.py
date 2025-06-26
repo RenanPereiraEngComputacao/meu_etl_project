@@ -1,3 +1,4 @@
+import re
 def insert_into_postgres_produto(data, conn):
     cursor = conn.cursor()
     cursor.execute("TRUNCATE TABLE produtos;")  # Limpa a tabela antes de inserir
@@ -15,15 +16,19 @@ def insert_into_postgres_produto(data, conn):
             ncm,
             marca,
             peso,
-            colecao
+            colecao,
+            tituloso
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
     """
 
     registros = []
     for row in data:
         # Tratamento da coluna MODO_LAVAR
         modo_original = (row.get("MODO_LAVAR") or "").strip().upper()
+        descricao_raw = row.get("DESCRICAO_PRODUTO", "")
+        descricao_sem_parenteses = re.sub(r"\s*\(.*?\)", "", descricao_raw).strip()
+        nome_formatado = ((descricao_sem_parenteses) + " | MÁLAGAH")
 
         if modo_original == "MODELO 01":
             modo_lavagem = (
@@ -44,7 +49,7 @@ def insert_into_postgres_produto(data, conn):
         registros.append((
             int(row["CODIGO_INTERNO_PRODUTO"]),
             row["REFERENCIA_PRODUTO"],
-            row["DESCRICAO_PRODUTO"],
+            descricao_sem_parenteses,
             row["CORESID"],
             row["CORES"],
             row["GRADE"],
@@ -53,7 +58,8 @@ def insert_into_postgres_produto(data, conn):
             row["NCM_PRODUTO"],
             row["MARCA_PRODUTO"],
             float(row["PESO_PRODUTO"]) if row["PESO_PRODUTO"] else 0.0,
-            row["COLECAO_PRODUTO"]
+            row["COLECAO_PRODUTO"],
+            nome_formatado
         ))
 
     cursor.executemany(insert_sql, registros)

@@ -1,9 +1,8 @@
-CREATE TABLE estoque_disponivel (
+CREATE TABLE sku_variacao_estoque (
 	indexado VARCHAR(500),
     refcodigo VARCHAR(50),
-    corcodigo VARCHAR(50),
-    cordescri VARCHAR(100),
-    tamanho VARCHAR(20),
+    variacao VARCHAR(100),
+    barcode VARCHAR(15) NOT NULL,
 	armazenamento INTEGER,
     fisico DECIMAL(13,3),
     reserva DECIMAL(13,3),
@@ -21,9 +20,32 @@ CREATE TABLE produtos (
 	modolavar	   VARCHAR(1000),
     ncm            VARCHAR(15),
     marca          VARCHAR(1000),
+    colecao        VARCHAR(1000),
     largura        NUMERIC(10,3) default 0.2,
     altura         NUMERIC(10,3) default 0.2,
     profundidade   NUMERIC(10,3) default 0.2,
     peso           NUMERIC(10,3),
-    colecao        VARCHAR(1000)
+    tituloso       VARCHAR(1000),
+    descricaoso    VARCHAR(1000)
+);
+
+CREATE TABLE orders (
+    idpedido             SERIAL PRIMARY KEY,
+    numeropedido         VARCHAR(50) NOT NULL,
+    nomecliente          VARCHAR(1000) NOT NULL,
+    cpfcnpjcliente      VARCHAR(20) NOT NULL,
+    tipopedido           VARCHAR(50) NOT NULL, -- Ex: B2C, B2B
+    statussincronismo    BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE order_itens (
+    iditempedido         SERIAL PRIMARY KEY,
+    idpedido             INTEGER NOT NULL,
+    barcode              VARCHAR(50) NOT NULL,
+    indexado             VARCHAR(1000) NOT NULL,
+    quantidade           INTEGER NOT NULL,
+    precounitario        DECIMAL(13,2) NOT NULL,
+    subtotal             DECIMAL(13,2) NOT NULL,
+
+    CONSTRAINT fk_order FOREIGN KEY (idpedido) REFERENCES orders(idpedido)
 );

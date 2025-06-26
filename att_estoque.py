@@ -20,10 +20,12 @@ def main():
         referencias = fetch_data(mysql_queries.get_referencias_query(), mysql_conn)
         cores = fetch_data(mysql_queries.get_cores_query(), mysql_conn)
         tamanhos = fetch_data(mysql_queries.get_tamanhos_query(), mysql_conn)
+        barcodes = fetch_data(mysql_queries.get_codebar(), mysql_conn)
         print("✅ Dados obtidos com sucesso do MySQL. Fechando conexão...")
-        resultado_final = process_data_estoque(saldos, reservas, referencias, cores, tamanhos)
+        resultado_final = process_data_estoque(saldos, reservas, referencias, cores, tamanhos, barcodes)
         print("✅ Dados processados com sucesso. Inserindo no PostgreSQL...")
         insert_into_postgres_estoque(resultado_final, pg_conn)
+        
     except Exception as e:
         print(f"Erro geral no pipeline: {e}")
     finally:

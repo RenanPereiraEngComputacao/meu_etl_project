@@ -1,3 +1,9 @@
+import mysql.connector
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 #estoque saldo, reserva, referencias, cores e tamanhos
 def get_estoque_saldo_query():
     return "SELECT seqrefer_bi, seqcores_bi, seqtaman_bi, seqgruarm_bi, estqtde_dc, estdata_dt FROM indestoquesaldo WHERE seqgruarm_bi = 1;"
@@ -35,3 +41,13 @@ def get_produtos_query():
     GROUP BY 
         REFERENCIA_PRODUTO, DESCRICAO_PRODUTO;
     """
+
+def get_codebar():
+    return """
+    SELECT 
+        seqrefer_dc,
+        seqcores_dc,
+        seqtaman_dc,
+        bargs1128_ch 
+    FROM 
+        indrelrefbar """
