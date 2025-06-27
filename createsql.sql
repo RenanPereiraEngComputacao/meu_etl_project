@@ -37,7 +37,8 @@ CREATE TABLE orders (
     nomecliente          VARCHAR(1000) NOT NULL,
     cpfcnpjcliente      VARCHAR(20) NOT NULL,
     tipopedido           VARCHAR(50) NOT NULL, -- Ex: B2C, B2B
-    statussincronismo    BOOLEAN NOT NULL DEFAULT FALSE
+    statussincronismo    BOOLEAN NOT NULL DEFAULT FALSE,
+    observacao          VARCHAR(5000)
 );
 
 CREATE TABLE order_itens (

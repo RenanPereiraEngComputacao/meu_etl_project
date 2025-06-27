@@ -5,6 +5,7 @@ load_dotenv()
 
 CNPJ_LOJAMALAGAH = os.getenv("CNPJ_LOJAMALAGAH")
 CNPJ_STYLEZEE = os.getenv("CNPJ_STYLEZEE")
+PRECO_PADRAO_LOJA_MALAGAH = os.getenv("PRECO_PADRAO_LOJA_MALAGAH")
 
 def montar_json_pedido(pedido, itens):
     if pedido["tipopedido"] == "B2C":
@@ -13,15 +14,20 @@ def montar_json_pedido(pedido, itens):
             "type": "1MTIx1",
             "customer": CNPJ_LOJAMALAGAH,
             "seller": CNPJ_STYLEZEE,
-            "note": f"Pedido {pedido['numeropedido']} - Cliente: {pedido['nomecliente']}.",
+            "bank": "001",
+            "note": f"Pedido N°: {pedido['numeropedido']} | Cliente: {pedido['nomecliente']}.",
             "items": [
                 {
                     "barcode": item["barcode"],
                     "order": item["quantidade"],
-                    "price": float(item["precounitario"])
+                    "price": PRECO_PADRAO_LOJA_MALAGAH
                 }
                 for item in itens
-            ]
+            ],
+            "installments": [
+            {
+            "days": 120
+            }]
         }
 
     elif pedido["tipopedido"] == "B2B":
@@ -30,7 +36,7 @@ def montar_json_pedido(pedido, itens):
             "type": "1MTIx1",
             "customer": pedido["cpfcnpjcliente"],
             "seller": CNPJ_STYLEZEE,
-            "note": f"Pedido {pedido['numeropedido']} - Cliente: {pedido['nomecliente']}.",
+            "note": f"Pedido N°: {pedido['numeropedido']} | Cliente: {pedido['nomecliente']}.",
             "items": [
                 {
                     "barcode": item["barcode"],
