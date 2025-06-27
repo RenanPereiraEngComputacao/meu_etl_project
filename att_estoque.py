@@ -15,9 +15,9 @@ def main():
         mysql_conn = get_mysql_connection()
         mysql_conn_view = get_mysql_connection3()
         pg_conn = get_postgres_connection()
-        print("✅ Conexões estabelecidas com sucesso.")
+        print("Conexões estabelecidas com sucesso.")
 
-        print("🔄 Buscando dados de estoque...")
+        print("Buscando dados de estoque...")
         saldos = fetch_data(mysql_queries.get_estoque_saldo_query(), mysql_conn)
         reservas = fetch_data(mysql_queries.get_reserva_query(), mysql_conn)
         referencias = fetch_data(mysql_queries.get_referencias_query(), mysql_conn)
@@ -25,7 +25,7 @@ def main():
         tamanhos = fetch_data(mysql_queries.get_tamanhos_query(), mysql_conn)
         barcodes = fetch_data(mysql_queries.get_codebar(), mysql_conn)
 
-        print("🔄 Buscando preços...")
+        print("Buscando preços...")
         precos = fetch_data(mysql_queries.get_precos_query(), mysql_conn_view)
 
         resultado_final = process_data_estoque(
@@ -38,18 +38,19 @@ def main():
             precos
         )
 
-        print("✅ Dados processados. Inserindo no PostgreSQL...")
+        print("Dados processados. Inserindo no PostgreSQL...")
         insert_into_postgres_estoque(resultado_final, pg_conn)
+        print("Dados de estoque inseridos com sucesso no PostgreSQL. Finalizando processo.")
 
     except Exception as e:
-        print(f"❌ Erro geral no pipeline: {e}")
+        print(f"Erro geral no pipeline: {e}")
     finally:
         for c in (mysql_conn, mysql_conn_view, pg_conn):
             try:
                 c.close()
             except:
                 pass
-        print("🔒 Todas conexões encerradas.")
+        print("Todas conexões encerradas.")
 
 if __name__ == "__main__":
     main()

@@ -63,3 +63,17 @@ CREATE TABLE cliente_b2b (
     telefone             VARCHAR(20),
     statuscliente        VARCHAR(20)
 );
+
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE execution_logs (
+  id SERIAL PRIMARY KEY,
+  script_name VARCHAR(255) NOT NULL,
+  output TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);

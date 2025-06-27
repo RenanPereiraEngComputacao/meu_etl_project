@@ -37,16 +37,16 @@ def main():
                         (pedido["idpedido"],)
                     )
                 conn.commit()
-                print(f"✅ Pedido {pedido['numeropedido']} sincronizado com sucesso.")
+                print(f"Pedido {pedido['numeropedido']} sincronizado com sucesso.")
             else:
-                print(f"❌ Falha ao sincronizar pedido {pedido['numeropedido']}: {response.text}")
+                print(f"Falha ao sincronizar pedido {pedido['numeropedido']}: {response.text}")
 
     except Exception as e:
         print(f"Erro durante sincronização: {e}")
     finally:
         try: conn.close()
         except: pass
-        print("🔒 Conexão encerrada.")
+        print("Conexão encerrada.")
 
 if __name__ == "__main__":
     main()

@@ -13,7 +13,7 @@ def get_mysql_connection():
             password=os.getenv("MYSQL_PASSWORD"),
             database=os.getenv("MYSQL_DATABASE")
         )
-        print(f"✅ Conexão estabelecida com sucesso MySQL dbind: {os.getenv('MYSQL_DATABASE')}")
+        print(f"Conexão estabelecida com sucesso MySQL dbind: {os.getenv('MYSQL_DATABASE')}")
         return conn
     except Exception as e:
         print(f"Erro na conexão com MySQL dbind: {e}")
@@ -28,7 +28,7 @@ def get_mysql_connection():
             password=os.getenv("MYSQL_PASSWORD"),
             database=os.getenv("MYSQL_DATABASE2")
         )
-        print(f"✅ Conexão estabelecida com sucesso MySQL dbadm: {os.getenv('MYSQL_DATABASE2')}")
+        print(f"Conexão estabelecida com sucesso MySQL dbadm: {os.getenv('MYSQL_DATABASE2')}")
         return conn2
     except Exception as e:
         print(f"Erro na conexão com MySQL dbadm: {e}")
@@ -43,7 +43,7 @@ def get_mysql_connection3():
             password=os.getenv("MYSQL_PASSWORD_VIEW"),
             database=os.getenv("MYSQL_DATABASE_VIEW")
         )
-        print(f"✅ Conexão estabelecida com sucesso MySQL View: {os.getenv('MYSQL_DATABASE_VIEW')}")
+        print(f"Conexão estabelecida com sucesso MySQL View: {os.getenv('MYSQL_DATABASE_VIEW')}")
         return conn3
     except Exception as e:
         print(f"Erro na conexão com MySQL View: {e}")

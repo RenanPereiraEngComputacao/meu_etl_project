@@ -77,7 +77,7 @@ app.post("/api/run-script/:scriptName", authenticateToken, (req, res) => {
 
   // Caminho absoluto dos scripts na raiz do projeto
   const scriptPath = path.resolve(__dirname, "../", scriptName);
-  const process = spawn("python3", [scriptPath]);
+  const process = spawn("python", [scriptPath]);
 
   let output = "";
 

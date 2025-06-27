@@ -13,7 +13,7 @@ def get_postgres_connection():
             password=os.getenv("PG_PASSWORD"),
             dbname=os.getenv("PG_DATABASE")
         )
-        print("✅ Conexão estabelecida com sucesso Postgres.")
+        print("Conexão estabelecida com sucesso Postgres.")
         return conn
     except Exception as e:
         print(f"Erro na conexão com PostgreSQL: {e}")

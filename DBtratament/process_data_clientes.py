@@ -33,9 +33,9 @@ def insert_into_postgres_clientes(data, conn):
         """
         cursor.executemany(insert_sql, data)
         conn.commit()
-        print("✅ Clientes inseridos com sucesso no Postgres.")
+        print("Clientes inseridos com sucesso no Postgres.")
     except Exception as e:
         conn.rollback()
-        print(f"❌ Erro ao inserir clientes: {e}")
+        print(f"Erro ao inserir clientes: {e}")
     finally:
         cursor.close()

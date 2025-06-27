@@ -16,7 +16,7 @@ def main():
     try:
         mysql_conn = get_mysql_connection3()
         pg_conn = get_postgres_connection()
-        print("✅ Conexões estabelecidas. Buscando dados...")
+        print("Conexões estabelecidas. Buscando dados...")
 
         data_mysql = fetch_data(mysql_queries.get_clientes_b2b_query(), mysql_conn)
         data_processado = process_clientes_b2b(data_mysql)
@@ -24,13 +24,13 @@ def main():
         insert_into_postgres_clientes(data_processado, pg_conn)
 
     except Exception as e:
-        print(f"❌ Erro geral no pipeline: {e}")
+        print(f"Erro geral no pipeline: {e}")
     finally:
         if mysql_conn:
             mysql_conn.close()
         if pg_conn:
             pg_conn.close()
-        print("🔒 Conexões fechadas.")
+        print("Conexões fechadas.")
 
 if __name__ == "__main__":
     main()
