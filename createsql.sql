@@ -35,15 +35,15 @@ CREATE TABLE orders (
     idpedido             SERIAL PRIMARY KEY,
     numeropedido         VARCHAR(50) NOT NULL,
     nomecliente          VARCHAR(1000) NOT NULL,
-    cpfcnpjcliente      VARCHAR(20) NOT NULL,
-    tipopedido           VARCHAR(50) NOT NULL, -- Ex: B2C, B2B
+    cpfcnpjcliente       VARCHAR(20) NOT NULL,
+    tipopedido           VARCHAR(50) NOT NULL,
     statussincronismo    BOOLEAN NOT NULL DEFAULT FALSE,
-    observacao          VARCHAR(5000)
+    observacao           VARCHAR(5000)
 );
 
 CREATE TABLE order_itens (
     iditempedido         SERIAL PRIMARY KEY,
-    idpedido             INTEGER NOT NULL,
+    idpedido             INTEGER NOT NULL, -- agora INTEGER
     barcode              VARCHAR(50) NOT NULL,
     indexado             VARCHAR(1000) NOT NULL,
     quantidade           INTEGER NOT NULL,

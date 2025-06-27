@@ -20,9 +20,22 @@ def main():
         conn = get_postgres_connection()
         pedidos = fetch_data(postgres_queries.get_pedidos_nao_sincronizados(), conn)
 
+        if not pedidos:
+            print("Nenhum pedido pendente de sincronização.")
+            return
+
         for pedido in pedidos:
             itens = fetch_data(postgres_queries.get_itens_por_pedido(), conn, (pedido["idpedido"],))
+
+            if not itens:
+                print(f" Pedido {pedido['numeropedido']} ignorado: nenhum item encontrado.")
+                continue
+
             json_payload = montar_json_pedido(pedido, itens)
+
+            # Print do JSON para conferência
+            #print(f"\n JSON do Pedido {pedido['numeropedido']}:")
+            #print(json_payload)
 
             response = requests.post(
                 url=os.getenv("ERP_API_URL"),
@@ -44,8 +57,10 @@ def main():
     except Exception as e:
         print(f"Erro durante sincronização: {e}")
     finally:
-        try: conn.close()
-        except: pass
+        try:
+            conn.close()
+        except:
+            pass
         print("Conexão encerrada.")
 
 if __name__ == "__main__":
