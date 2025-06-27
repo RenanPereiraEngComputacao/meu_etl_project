@@ -1,20 +1,36 @@
+import os
 import re
-def process_data_estoque (saldos, reservas, referencias, cores, tamanhos,barcodes):
-    # Transforma listas em dicionários para acesso rápido
+import math
+from dotenv import load_dotenv
+
+load_dotenv()
+
+MULTIPLICADOR = float(os.getenv("PRECO_MULTIPLICADOR", "1.0"))
+
+# Função para arredondar o preço para o próximo múltiplo de 0.90
+def arredondar_para_90(valor):
+    inteiro = math.floor(valor)
+    return inteiro + 0.90
+
+# Processamento dos dados de estoque
+def process_data_estoque(
+    saldos, reservas, referencias, cores, tamanhos, barcodes, precos):
+    # Dicionários de consulta rápida
     ref_map = {r['seqrefer_dc']: r['refcodigo_ch'] for r in referencias}
     cor_map = {c['seqcores_dc']: (c['corcodigo_in'], c['cordescri_ch']) for c in cores}
     tam_map = {t['seqtaman_dc']: t['tamtama_ch'] for t in tamanhos}
-    barcode_map = {(b['seqrefer_dc'], b['seqcores_dc'], b['seqtaman_dc']): b['bargs1128_ch'] 
+    barcode_map = {(b['seqrefer_dc'], b['seqcores_dc'], b['seqtaman_dc']): b['bargs1128_ch']
                    for b in barcodes}
+    preco_map = {p['EAN']: float(p['PRECO']) for p in precos}
 
-    # Filtra o saldo mais recente por chave
+    # Agrupando saldos por seqrefer_bi, seqcores_bi, seqtaman_bi, seqgruarm_bi
     saldo_ultimo = {}
     for s in saldos:
         key = (s['seqrefer_bi'], s['seqcores_bi'], s['seqtaman_bi'], s['seqgruarm_bi'])
         if key not in saldo_ultimo or s['estdata_dt'] > saldo_ultimo[key]['estdata_dt']:
             saldo_ultimo[key] = s
 
-    # Agrupa reservas por chave
+    # Agrupando reservas por seqrefer_bi, seqcores_bi, seqtaman_bi, seqgruarm_bi
     reserva_map = {}
     for r in reservas:
         key = (r['seqrefer_bi'], r['seqcores_bi'], r['seqtaman_bi'], r['seqgruarm_bi'])
@@ -34,9 +50,18 @@ def process_data_estoque (saldos, reservas, referencias, cores, tamanhos,barcode
         corajust = re.sub(r"\s*\(.*?\)", "", cordescri).strip()
         barcode = barcode_map.get((seqrefer, seqcor, seqtamanho), "")
 
-        # Campo indexado: refcodigo + corcodigo + tamtama
+        # Preço ajustado
+        preco_original = preco_map.get(barcode)
+        if preco_original:
+            preco_multiplicado = preco_original * MULTIPLICADOR
+            preco_final = arredondar_para_90(preco_multiplicado)
+            preco_original_arredondado = arredondar_para_90(preco_original)
+        else:
+            preco_final = 0.0
+            preco_original_arredondado = 0.0
+
+        # Indexado e Variacao
         indexado = f"{refcodigo_formatado}-{corcodigo}-{tamtama}"
-        # Variacao: corajust + tamtama
         variacao = f"{corajust}-{tamtama}"
 
         resultado_final.append((
@@ -44,6 +69,8 @@ def process_data_estoque (saldos, reservas, referencias, cores, tamanhos,barcode
             refcodigo,
             variacao,
             barcode,
+            preco_final,
+            preco_original_arredondado,
             seqgruarm,
             estqtde,
             resqtde,
@@ -59,8 +86,8 @@ def insert_into_postgres_estoque(data, conn):
         cursor.execute("TRUNCATE TABLE sku_variacao_estoque;")
         insert_sql = """
             INSERT INTO sku_variacao_estoque
-            (indexado, refcodigo, variacao, barcode, armazenamento, fisico, reserva, disponivel)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            (indexado, refcodigo, variacao, barcode, precob2c, precob2b, armazenamento, fisico, reserva, disponivel)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
         cursor.executemany(insert_sql, data)
         conn.commit()

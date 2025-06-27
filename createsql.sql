@@ -3,10 +3,12 @@ CREATE TABLE sku_variacao_estoque (
     refcodigo VARCHAR(50),
     variacao VARCHAR(100),
     barcode VARCHAR(15) NOT NULL,
+    precob2c DECIMAL(13,2),
+    precob2b DECIMAL(13,2),
 	armazenamento INTEGER,
-    fisico DECIMAL(13,3),
-    reserva DECIMAL(13,3),
-    disponivel DECIMAL(13,3)
+    fisico INTEGER,
+    reserva INTEGER,
+    disponivel INTEGER
 );
 
 CREATE TABLE produtos (
@@ -48,4 +50,15 @@ CREATE TABLE order_itens (
     subtotal             DECIMAL(13,2) NOT NULL,
 
     CONSTRAINT fk_order FOREIGN KEY (idpedido) REFERENCES orders(idpedido)
+);
+
+CREATE TABLE cliente_b2b (
+    idcliente            SERIAL PRIMARY KEY,
+    internocliente       VARCHAR(50) NOT NULL,
+    cpfcnpj              VARCHAR(20) NOT NULL,
+    nome                 VARCHAR(1000) NOT NULL,
+    email                VARCHAR(1000),
+    ddd                  VARCHAR(5),
+    telefone             VARCHAR(20),
+    statuscliente        VARCHAR(20)
 );

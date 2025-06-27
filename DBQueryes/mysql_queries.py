@@ -51,3 +51,24 @@ def get_codebar():
         bargs1128_ch 
     FROM 
         indrelrefbar """
+
+def get_precos_query():
+    return """
+        SELECT 
+            EAN,
+            PRECO
+        FROM 
+            VW_CTO_TABELAPRECO
+    """
+def get_clientes_b2b_query():
+    return """
+        SELECT
+            CODIGO_INTERNO_CLIENTE,
+            CNPJ_CPF_CLIENTE,
+            RAZAO_SOCIAL,
+            EMAIL_CLIENTE,
+            DDD_FONE,
+            FONE_CLIENTE
+        FROM
+            VW_CTO_CLIENTE;
+    """
