@@ -36,7 +36,7 @@ def montar_json_pedido(pedido, itens):
             "type": "1MTE59",
             "customer": pedido["cpfcnpjcliente"],
             "seller": CNPJ_STYLEZEE,
-            "note": f"Pedido N°: {pedido['numeropedido']} | Cliente: {pedido['nomecliente']}.",
+            "note": f"Pedido N°: {pedido['numeropedido']} | Cliente: {pedido['nomecliente']} | Obs: {pedido['observacao']}.",
             "items": [
                 {
                     "barcode": item["barcode"],
