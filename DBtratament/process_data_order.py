@@ -33,7 +33,7 @@ def montar_json_pedido(pedido, itens):
     elif pedido["tipopedido"] == "B2B":
         return {
             "async": True,
-            "type": "1MTIx1",
+            "type": "1MTE59",
             "customer": pedido["cpfcnpjcliente"],
             "seller": CNPJ_STYLEZEE,
             "note": f"Pedido N°: {pedido['numeropedido']} | Cliente: {pedido['nomecliente']}.",
