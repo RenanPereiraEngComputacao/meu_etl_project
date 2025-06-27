@@ -56,7 +56,7 @@ function Dashboard({ onLogout }) {
             disabled={loading}
             style={{ marginRight: "10px", marginBottom: "10px" }}
           >
-            Executar {script}
+            Executar - {script}
           </Button>
         ))}
       </Box>
