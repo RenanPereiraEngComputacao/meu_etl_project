@@ -29,8 +29,8 @@ CREATE TABLE produtos (
     peso           NUMERIC(10,3),
     tituloso       VARCHAR(1000),
     descricaoso    VARCHAR(1000),
-    descricaolonga VARCHAR(5000),
     descricaocurta VARCHAR(1000),
+    descricaolonga VARCHAR(5000),
     palavraschave  VARCHAR(1000)
 );
 

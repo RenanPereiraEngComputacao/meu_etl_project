@@ -33,7 +33,15 @@ def insert_into_postgres_produto(data, observacoes, conn):
         modo_original = (row.get("MODO_LAVAR") or "").strip().upper()
         descricao_raw = row.get("DESCRICAO_PRODUTO", "")
         descricao_sem_parenteses = re.sub(r"\s*\(.*?\)", "", descricao_raw).strip()
+        descricao_sem_parenteses = re.sub(r"\s*\(.*?\)", "", descricao_raw).strip()
+        descricao_sem_parenteses = (
+            descricao_sem_parenteses
+            .replace("MC", "MANGA CURTA")
+            .replace("ML", "MANGA LONGA")
+        )
         nome_formatado = ((descricao_sem_parenteses) + " | MÁLAGAH")
+        corsem = row.get("CORES", "")
+        desccorsem = re.sub(r"\s*\(.*?\)", "", corsem).strip()
 
         if modo_original == "MODELO 01":
             modo_lavagem = (
@@ -64,7 +72,7 @@ def insert_into_postgres_produto(data, observacoes, conn):
             row["REFERENCIA_PRODUTO"],
             descricao_sem_parenteses,
             row["CORESID"],
-            row["CORES"],
+            desccorsem,
             row["GRADE"],
             row["COMPOSICAO"],
             modo_lavagem,
