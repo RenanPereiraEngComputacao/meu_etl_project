@@ -8,6 +8,10 @@ from DBtratament.process_data_order import montar_json_pedido
 
 load_dotenv()
 
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+
 def fetch_data(query, conn, params=None):
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(query, params if params else ())

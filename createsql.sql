@@ -78,5 +78,5 @@ CREATE TABLE execution_logs (
   id SERIAL PRIMARY KEY,
   script_name VARCHAR(255) NOT NULL,
   output TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT now()
 );

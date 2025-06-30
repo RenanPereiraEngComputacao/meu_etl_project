@@ -3,6 +3,10 @@ from DBconect.postgres_conn import get_postgres_connection
 from DBQueryes import mysql_queries
 from DBtratament.process_data_clientes import process_clientes_b2b, insert_into_postgres_clientes
 
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+
 def fetch_data(query, conn):
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query)

@@ -82,11 +82,11 @@ app.post("/api/run-script/:scriptName", authenticateToken, (req, res) => {
   let output = "";
 
   process.stdout.on("data", (data) => {
-    output += data.toString();
+  output += data.toString("utf8");
   });
 
   process.stderr.on("data", (data) => {
-    output += "ERROR: " + data.toString();
+    output += "ERROR: " + data.toString("utf8");
   });
 
   process.on("close", async (code) => {

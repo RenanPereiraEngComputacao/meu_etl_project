@@ -11,8 +11,12 @@ function getPostgresConnection() {
       database: process.env.PG_DATABASE,
     });
 
-    console.log("✅ Conexão estabelecida com sucesso Postgres.");
+    // 🔥 Toda vez que a conexão for criada, setar UTF-8
+    pool.on("connect", (client) => {
+      client.query("SET client_encoding TO 'UTF8';");
+    });
 
+    console.log("Conexão estabelecida com sucesso Postgres.");
     return pool;
   } catch (error) {
     console.error("Erro na conexão com PostgreSQL:", error);

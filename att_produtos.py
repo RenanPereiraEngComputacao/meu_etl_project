@@ -2,6 +2,9 @@ from DBconect.mysql_conn import get_mysql_connection3
 from DBconect.postgres_conn import get_postgres_connection
 from DBQueryes import mysql_queries  
 from DBtratament.process_data_produto import insert_into_postgres_produto
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 def fetch_data(query, conn):
     cursor = conn.cursor(dictionary=True)
