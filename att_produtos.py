@@ -17,9 +17,10 @@ def main():
         print(" Conexões estabelecidas com sucesso! Iniciando consulta de produtos...")
 
         produtos = fetch_data(mysql_queries.get_produtos_query(), mysql_conn)
+        observacoes = fetch_data(mysql_queries.get_produtos_obs(), mysql_conn)
         print(" Produtos consultados no MySQL. Iniciando inserção no Postgres...")
 
-        insert_into_postgres_produto(produtos, pg_conn)
+        insert_into_postgres_produto(produtos, observacoes, pg_conn)
         print(" Produtos inseridos no Postgres com sucesso!!")
 
     except Exception as e:

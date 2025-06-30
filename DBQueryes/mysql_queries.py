@@ -42,6 +42,17 @@ def get_produtos_query():
         REFERENCIA_PRODUTO, DESCRICAO_PRODUTO;
     """
 
+def get_produtos_obs():
+    return """
+    SELECT 
+        CODIGO_INTERNO_PRODUTO,
+        REFERENCIA_PRODUTO,
+        DESCRICAO_OBSERVACAO 
+    FROM 
+        VW_CTO_PRODUTO_OBSERVACAO 
+    WHERE 
+        OBSERVACAO = 'descricao: so, curta, longa e palavras chave'
+    """
 def get_codebar():
     return """
     SELECT 

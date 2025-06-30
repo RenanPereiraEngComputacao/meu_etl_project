@@ -28,7 +28,10 @@ CREATE TABLE produtos (
     profundidade   NUMERIC(10,3) default 0.2,
     peso           NUMERIC(10,3),
     tituloso       VARCHAR(1000),
-    descricaoso    VARCHAR(1000)
+    descricaoso    VARCHAR(1000),
+    descricaolonga VARCHAR(5000),
+    descricaocurta VARCHAR(1000),
+    palavraschave  VARCHAR(1000)
 );
 
 CREATE TABLE orders (
@@ -43,7 +46,7 @@ CREATE TABLE orders (
 
 CREATE TABLE order_itens (
     iditempedido         SERIAL PRIMARY KEY,
-    idpedido             INTEGER NOT NULL, -- agora INTEGER
+    idpedido             INTEGER NOT NULL,
     barcode              VARCHAR(50) NOT NULL,
     indexado             VARCHAR(1000) NOT NULL,
     quantidade           INTEGER NOT NULL,

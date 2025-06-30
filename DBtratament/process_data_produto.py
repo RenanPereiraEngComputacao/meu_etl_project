@@ -1,7 +1,8 @@
 import re
-def insert_into_postgres_produto(data, conn):
+def insert_into_postgres_produto(data, observacoes, conn):
     cursor = conn.cursor()
     cursor.execute("TRUNCATE TABLE produtos;")  # Limpa a tabela antes de inserir
+    obs_map = {o["CODIGO_INTERNO_PRODUTO"]: o["DESCRICAO_OBSERVACAO"] for o in observacoes}
 
     insert_sql = """
         INSERT INTO produtos (
@@ -17,9 +18,13 @@ def insert_into_postgres_produto(data, conn):
             marca,
             peso,
             colecao,
-            tituloso
+            tituloso,
+            descricaoso,
+            descricaocurta,
+            descricaolonga,
+            palavraschave
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
     """
 
     registros = []
@@ -46,6 +51,14 @@ def insert_into_postgres_produto(data, conn):
         else:
             modo_lavagem = "AJUSTAR INFORMAÇÃO"
 
+        caracteristica_raw = obs_map.get(row["CODIGO_INTERNO_PRODUTO"], "")
+        partes = [p.strip() for p in caracteristica_raw.split("|")]
+
+        while len(partes) < 4:
+            partes.append("")
+
+        descricaoso, descricaocurta, descricaolonga, palavraschave = partes[:4]
+
         registros.append((
             int(row["CODIGO_INTERNO_PRODUTO"]),
             row["REFERENCIA_PRODUTO"],
@@ -59,7 +72,12 @@ def insert_into_postgres_produto(data, conn):
             row["MARCA_PRODUTO"],
             float(row["PESO_PRODUTO"]) if row["PESO_PRODUTO"] else 0.0,
             row["COLECAO_PRODUTO"],
-            nome_formatado
+            nome_formatado,
+            descricaoso if descricaoso else "NÃO INFORMADO",
+            descricaocurta if descricaocurta else "NÃO INFORMADO",
+            descricaolonga if descricaolonga else "NÃO INFORMADO",
+            palavraschave if palavraschave else "NÃO INFORMADO"
+
         ))
 
     cursor.executemany(insert_sql, registros)
