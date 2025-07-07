@@ -1,5 +1,6 @@
 CREATE TABLE sku_variacao_estoque (
 	indexado VARCHAR(500),
+    indexadocorescrito VARCHAR(500),
     refcodigo VARCHAR(50),
     variacao VARCHAR(100),
     barcode VARCHAR(15) NOT NULL,
@@ -14,6 +15,7 @@ CREATE TABLE sku_variacao_estoque (
 CREATE TABLE produtos (
     idproduto      INTEGER,
     referencia     VARCHAR(30) NOT NULL,
+    sku            VARCHAR(30) NOT NULL,
     nome           VARCHAR(1000) NOT NULL,
     coresid        VARCHAR(1000),
     cores          VARCHAR(1000),

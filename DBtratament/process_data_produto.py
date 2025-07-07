@@ -8,6 +8,7 @@ def insert_into_postgres_produto(data, observacoes, conn):
         INSERT INTO produtos (
             idproduto,
             referencia,
+            sku,
             nome,
             coresid,
             cores,
@@ -24,7 +25,7 @@ def insert_into_postgres_produto(data, observacoes, conn):
             descricaolonga,
             palavraschave
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
     """
 
     registros = []
@@ -38,6 +39,7 @@ def insert_into_postgres_produto(data, observacoes, conn):
             descricao_sem_parenteses
             .replace("MC", "MANGA CURTA")
             .replace("ML", "MANGA LONGA")
+            .replace("C/", "COM")
         )
         nome_formatado = ((descricao_sem_parenteses) + " | MÁLAGAH")
         corsem = row.get("CORES", "")
@@ -70,6 +72,7 @@ def insert_into_postgres_produto(data, observacoes, conn):
         registros.append((
             int(row["CODIGO_INTERNO_PRODUTO"]),
             row["REFERENCIA_PRODUTO"],
+            row["REFERENCIA_PRODUTO"].replace('.', '-'),
             descricao_sem_parenteses,
             row["CORESID"],
             desccorsem,

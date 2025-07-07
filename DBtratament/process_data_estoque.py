@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MULTIPLICADOR = float(os.getenv("PRECO_MULTIPLICADOR", "1.0"))
+MULTIPLICADOR = float(os.getenv("PRECO_MULTIPLICADOR", "2.0"))
 
 # Função para arredondar o preço para o próximo múltiplo de 0.90
 def arredondar_para_90(valor):
@@ -49,6 +49,7 @@ def process_data_estoque(
         refcodigo_formatado = refcodigo.replace('.', '-')
         corajust = re.sub(r"\s*\(.*?\)", "", cordescri).strip()
         barcode = barcode_map.get((seqrefer, seqcor, seqtamanho), "")
+        coresajust = corajust.replace(' ', '-')
 
         # Preço ajustado
         preco_original = preco_map.get(barcode)
@@ -62,10 +63,12 @@ def process_data_estoque(
 
         # Indexado e Variacao
         indexado = f"{refcodigo_formatado}-{corcodigo}-{tamtama}"
+        indexadocorescrito = f"{refcodigo_formatado}-{coresajust}-{tamtama}"
         variacao = f"{corajust}-{tamtama}"
 
         resultado_final.append((
             indexado,
+            indexadocorescrito,
             refcodigo,
             variacao,
             barcode,
@@ -86,13 +89,13 @@ def insert_into_postgres_estoque(data, conn):
         cursor.execute("TRUNCATE TABLE sku_variacao_estoque;")
         insert_sql = """
             INSERT INTO sku_variacao_estoque
-            (indexado, refcodigo, variacao, barcode, precob2c, precob2b, armazenamento, fisico, reserva, disponivel)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            (indexado, indexadocorescrito, refcodigo, variacao, barcode, precob2c, precob2b, armazenamento, fisico, reserva, disponivel)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
         cursor.executemany(insert_sql, data)
         conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao inserir dados no Postgres: {e}")
+        print(f"Erro ao inserir dados no Postgres: {e}")
         conn.rollback()
     finally:
         cursor.close()
