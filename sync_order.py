@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 from DBconect.postgres_conn import get_postgres_connection
 from DBQueryes import postgres_queries
-from DBtratament.process_data_order import montar_json_pedido
+from DBtratament.process_data_order import montar_json_pedido, atualizar_barcodes_faltantes
 
 load_dotenv()
 
@@ -34,6 +34,8 @@ def main():
             if not itens:
                 print(f" Pedido {pedido['numeropedido']} ignorado: nenhum item encontrado.")
                 continue
+            
+            atualizar_barcodes_faltantes(itens, conn)
 
             json_payload = montar_json_pedido(pedido, itens)
 

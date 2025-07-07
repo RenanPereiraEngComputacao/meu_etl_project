@@ -49,7 +49,7 @@ CREATE TABLE orders (
 CREATE TABLE order_itens (
     iditempedido         SERIAL PRIMARY KEY,
     idpedido             INTEGER NOT NULL,
-    barcode              VARCHAR(50) NOT NULL,
+    barcode              VARCHAR(50),
     indexado             VARCHAR(1000) NOT NULL,
     quantidade           INTEGER NOT NULL,
     precounitario        DECIMAL(13,2) NOT NULL,
