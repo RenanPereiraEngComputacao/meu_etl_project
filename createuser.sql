@@ -26,6 +26,7 @@ REVOKE DELETE ON TABLES FROM convertr;
 -- Permissão total nas tabelas
 GRANT SELECT, INSERT, UPDATE ON TABLE orders TO convertr;
 GRANT SELECT, INSERT, UPDATE ON TABLE order_itens TO convertr;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE order_itens TO convertr;
 
 REVOKE DELETE ON TABLE orders FROM convertr;
 REVOKE DELETE ON TABLE order_itens FROM convertr;
@@ -33,3 +34,4 @@ REVOKE DELETE ON TABLE order_itens FROM convertr;
 -- Permissão total nas sequences
 GRANT ALL PRIVILEGES ON SEQUENCE orders_idpedido_seq TO convertr;
 GRANT ALL PRIVILEGES ON SEQUENCE order_itens_iditempedido_seq TO convertr;
+GRANT ALL PRIVILEGES ON SEQUENCE cliente_secundaria_idclientesecundario TO convertr;

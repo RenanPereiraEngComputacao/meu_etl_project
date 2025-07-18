@@ -69,6 +69,14 @@ CREATE TABLE cliente_b2b (
     statuscliente        VARCHAR(20)
 );
 
+CREATE TABLE cliente_secundaria (
+    idclientesecundario            SERIAL PRIMARY KEY,
+    cpfcnpj              VARCHAR(20) NOT NULL,
+    nome                 VARCHAR(1000) NOT NULL,
+    email                VARCHAR(1000),
+    telefone             VARCHAR(20)
+);
+
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   username VARCHAR(255) UNIQUE NOT NULL,
