@@ -32,16 +32,12 @@ def main():
             itens = fetch_data(postgres_queries.get_itens_por_pedido(), conn, (pedido["idpedido"],))
 
             if not itens:
-                print(f" Pedido {pedido['numeropedido']} ignorado: nenhum item encontrado.")
+                print(f"Pedido {pedido['numeropedido']} ignorado: nenhum item encontrado.")
                 continue
-            
+
             atualizar_barcodes_faltantes(itens, conn)
 
             json_payload = montar_json_pedido(pedido, itens)
-
-            # Print do JSON para conferência
-            #print(f"\n JSON do Pedido {pedido['numeropedido']}:")
-            #print(json_payload)
 
             response = requests.post(
                 url=os.getenv("ERP_API_URL"),
@@ -50,13 +46,21 @@ def main():
             )
 
             if response.status_code == 200:
+                resposta = response.json()
+
+                numero_erp = None
+                try:
+                    numero_erp = int(resposta["data"][0]["number"])
+                except (KeyError, IndexError, TypeError, ValueError):
+                    print(f"Atenção: não foi possível extrair o número ERP do pedido {pedido['numeropedido']}")
+
                 with conn.cursor() as cursor:
                     cursor.execute(
-                        "UPDATE orders SET statussincronismo = TRUE WHERE idpedido = %s;",
-                        (pedido["idpedido"],)
+                        "UPDATE orders SET statussincronismo = TRUE, statusped = 'Pedido Recebido', pedidosty = %s WHERE idpedido = %s;",
+                        (numero_erp, pedido["idpedido"])
                     )
                 conn.commit()
-                print(f"Pedido {pedido['numeropedido']} sincronizado com sucesso.")
+                print(f"Pedido {pedido['numeropedido']} sincronizado com sucesso. Número ERP: {numero_erp}")
             else:
                 print(f"Falha ao sincronizar pedido {pedido['numeropedido']}: {response.text}")
 
@@ -68,6 +72,7 @@ def main():
         except:
             pass
         print("Conexão encerrada.")
+
 
 if __name__ == "__main__":
     main()

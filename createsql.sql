@@ -37,7 +37,7 @@ CREATE TABLE produtos (
 );
 
 CREATE TABLE orders (
-    idpedido             SERIAL PRIMARY KEY,
+    idpedido             INTEGER NOT NULL PRIMARY KEY,
     numeropedido         VARCHAR(50) NOT NULL,
     nomecliente          VARCHAR(1000) NOT NULL,
     cpfcnpjcliente       VARCHAR(20) NOT NULL,
@@ -45,6 +45,8 @@ CREATE TABLE orders (
     statussincronismo    BOOLEAN NOT NULL DEFAULT FALSE,
     observacao           VARCHAR(5000)
 );
+
+ALTER TABLE orders ADD COLUMN pedidosty INTEGER;
 
 CREATE TABLE order_itens (
     iditempedido         SERIAL PRIMARY KEY,
