@@ -5,6 +5,9 @@ import os
 from DBconect.postgres_conn import get_postgres_connection
 from DBQueryes import postgres_queries
 from DBtratament.process_data_order import montar_json_pedido, atualizar_barcodes_faltantes
+from DBtratament.logger import registrar_log
+
+import contextlib   
 
 load_dotenv()
 
@@ -75,4 +78,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        main()
+
+    registrar_log("sync_order.py", buffer.getvalue())

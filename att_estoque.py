@@ -1,11 +1,13 @@
+import sys
+import io
+import contextlib
+
 from DBconect.mysql_conn import get_mysql_connection, get_mysql_connection3
 from DBconect.postgres_conn import get_postgres_connection
 from DBQueryes import mysql_queries
 from DBtratament.process_data_estoque import process_data_estoque, insert_into_postgres_estoque
+from DBtratament.logger import registrar_log
 
-import sys
-import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 def fetch_data(query, conn):
     cursor = conn.cursor(dictionary=True)
@@ -57,4 +59,8 @@ def main():
         print("Todas conexões encerradas.")
 
 if __name__ == "__main__":
-    main()
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        main()
+
+    registrar_log("att_estoque.py", buffer.getvalue())

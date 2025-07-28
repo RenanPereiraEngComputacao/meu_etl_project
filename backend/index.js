@@ -10,7 +10,6 @@ const getPostgresConnection = require("./db");
 const app = express();
 app.use(cors());
 app.use(express.json());
-
 const pool = getPostgresConnection();
 const JWT_SECRET = process.env.JWT_SECRET || "umsegredoseguro";
 
@@ -91,12 +90,7 @@ app.post("/api/run-script/:scriptName", authenticateToken, (req, res) => {
 
   process.on("close", async (code) => {
     try {
-      await pool.query(
-        "INSERT INTO execution_logs (script_name, output) VALUES ($1, $2)",
-        [scriptName, output]
-      );
-
-      res.json({
+        res.json({
         message: "Execução finalizada.",
         exitCode: code,
         output,
@@ -123,6 +117,6 @@ app.get("/api/logs", authenticateToken, async (req, res) => {
 
 // Inicializa o servidor
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ API rodando na porta ${PORT}`);
 });

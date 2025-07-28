@@ -2,7 +2,9 @@ from DBconect.mysql_conn import get_mysql_connection3
 from DBconect.postgres_conn import get_postgres_connection
 from DBQueryes import mysql_queries
 from DBtratament.process_data_clientes import process_clientes_b2b, insert_into_postgres_clientes
+from DBtratament.logger import registrar_log
 
+import contextlib
 import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
@@ -37,4 +39,8 @@ def main():
         print("Conexões fechadas.")
 
 if __name__ == "__main__":
-    main()
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        main()
+
+    registrar_log("att_clientes.py", buffer.getvalue())
