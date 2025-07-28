@@ -1,11 +1,11 @@
 import time
 import subprocess
 from datetime import datetime
-
+print("Iniciando o script rodarautomaticamente.py...")
 def esperar_proximo_horario():
     while True:
         agora = datetime.now()
-        if agora.minute % 10 == 8:  # 08, 18, 28, 38, 48, 58
+        if agora.minute % 10 == 9:  # 09, 19, 29, 39, 49, 59
             return
         time.sleep(10)
 
