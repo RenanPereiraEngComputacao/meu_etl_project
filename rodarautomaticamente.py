@@ -1,21 +1,34 @@
 import time
 import subprocess
 from datetime import datetime
+
 print("Iniciando o script rodarautomaticamente.py...")
-def esperar_proximo_horario():
-    while True:
-        agora = datetime.now()
-        if agora.minute % 10 == 9:  # 09, 19, 29, 39, 49, 59
-            return
-        time.sleep(10)
+
+def executar_script_pedido():
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Iniciando execução de sync_order.py")
+    subprocess.run(["python", "c:/meu_etl_project/sync_order.py"])
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Finalizou execução de sync_order.py\n")
 
 def executar_script():
-    print(f"Executando att_estoque.py às {datetime.now().strftime('%H:%M:%S')}")
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Iniciando execução de att_estoque.py")
     subprocess.run(["python", "c:/meu_etl_project/att_estoque.py"])
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Finalizou execução de att_estoque.py\n")
+
+executado_pedido_minuto = None
+executado_estoque_minuto = None
 
 if __name__ == "__main__":
     while True:
-        esperar_proximo_horario()
-        executar_script()
-        # Espera 60 segundos para evitar rodar duas vezes no mesmo minuto
-        time.sleep(60)
+        agora = datetime.now()
+        minuto = agora.minute
+
+        if minuto % 10 == 8 and executado_pedido_minuto != minuto:
+            executar_script_pedido()
+            executado_pedido_minuto = minuto
+
+        if minuto % 10 == 9 and executado_estoque_minuto != minuto:
+            executar_script()
+            executado_estoque_minuto = minuto
+
+        print(f"[{agora.strftime('%H:%M:%S')}] Aguardando próximo ciclo...")
+        time.sleep(10)
