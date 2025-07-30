@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Drawer,
@@ -29,14 +29,24 @@ function Dashboard({ onLogout }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchLogs = async () => {
-    const res = await API.get("/logs");
-    setLogs(res.data);
-  };
+  const fetchLogs = useCallback(async () => {
+    try {
+      const res = await API.get("/logs", {
+        params: {
+          script: selectedScript,
+          limit: 10,
+        },
+      });
+      setLogs(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao carregar logs.");
+    }
+  }, [selectedScript]);
 
   useEffect(() => {
     fetchLogs();
-  }, []);
+  }, [fetchLogs]);
 
   const runScript = async () => {
     setLoading(true);
@@ -50,10 +60,6 @@ function Dashboard({ onLogout }) {
       setLoading(false);
     }
   };
-
-  const filteredLogs = logs.filter(
-    (log) => log.script_name === selectedScript
-  );
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -113,10 +119,10 @@ function Dashboard({ onLogout }) {
             {loading ? "Executando..." : "Executar Script"}
           </Button>
         </Box>
-        {filteredLogs.length === 0 ? (
+        {logs.length === 0 ? (
           <Typography variant="body2">Nenhum log disponível.</Typography>
         ) : (
-          filteredLogs.map((log) => (
+          logs.map((log) => (
             <Box
               key={log.id}
               mb={2}

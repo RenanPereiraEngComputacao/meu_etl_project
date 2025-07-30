@@ -102,12 +102,27 @@ app.post("/api/run-script/:scriptName", authenticateToken, (req, res) => {
   });
 });
 
-// Rota para buscar logs
+// Rota para buscar logs com filtros
 app.get("/api/logs", authenticateToken, async (req, res) => {
+  const { script, limit } = req.query;
+
+  const queryParams = [];
+  let query = "SELECT * FROM execution_logs";
+  
+  if (script) {
+    queryParams.push(script);
+    query += ` WHERE script_name = $${queryParams.length}`;
+  }
+
+  query += " ORDER BY created_at DESC";
+
+  // aplica LIMIT se informado, senão usa 20
+  const limitValue = parseInt(limit) || 20;
+  queryParams.push(limitValue);
+  query += ` LIMIT $${queryParams.length}`;
+
   try {
-    const result = await pool.query(
-      "SELECT * FROM execution_logs ORDER BY created_at DESC LIMIT 50"
-    );
+    const result = await pool.query(query, queryParams);
     res.json(result.rows);
   } catch (error) {
     console.error("Erro ao buscar logs:", error);
