@@ -22,9 +22,9 @@ if __name__ == "__main__":
         agora = datetime.now()
         minuto = agora.minute
 
-        #if minuto % 10 == 8 and executado_pedido_minuto != minuto:
-            #executar_script_pedido()
-            #executado_pedido_minuto = minuto
+        if minuto % 10 == 8 and executado_pedido_minuto != minuto:
+            executar_script_pedido()
+            executado_pedido_minuto = minuto
 
         if minuto % 10 == 9 and executado_estoque_minuto != minuto:
             executar_script()
