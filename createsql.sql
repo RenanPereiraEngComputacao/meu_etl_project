@@ -43,10 +43,11 @@ CREATE TABLE orders (
     cpfcnpjcliente       VARCHAR(20) NOT NULL,
     tipopedido           VARCHAR(50) NOT NULL,
     statussincronismo    BOOLEAN NOT NULL DEFAULT FALSE,
-    observacao           VARCHAR(5000)
+    observacao           VARCHAR(5000),
+    pedidosty            INTEGER,
+    statusped            VARCHAR(50),
+    liberado             VARCHAR(50) default 'false'
 );
-
-ALTER TABLE orders ADD COLUMN pedidosty INTEGER;
 
 CREATE TABLE order_itens (
     iditempedido         SERIAL PRIMARY KEY,

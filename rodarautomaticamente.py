@@ -35,6 +35,12 @@ def executar_script():
     subprocess.run(["python", "c:/meu_etl_project/att_estoque.py"])
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Finalizou execução de att_estoque.py\n")
 
+def libera_pedido():
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Iniciando execução do libera_pedido.py")
+    subprocess.run(["python", "c:/meu_etl_project/libera_pedido.py"])
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Finalizou execução do libera_pedido.py\n")
+
+
 executado_pedido_minuto = None
 executado_estoque_minuto = None
 
@@ -43,8 +49,10 @@ if __name__ == "__main__":
         agora = datetime.now()
         minuto = agora.minute
 
-        if minuto % 10 == 8 and executado_pedido_minuto != minuto:
+        if minuto % 10 == 4 and executado_pedido_minuto != minuto:
             executar_script_pedido()
+            time.sleep(2)  
+            libera_pedido()
             executado_pedido_minuto = minuto
 
         if minuto % 10 == 9 and executado_estoque_minuto != minuto:
