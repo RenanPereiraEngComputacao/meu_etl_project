@@ -13,15 +13,18 @@ from DBconect.postgres_conn import get_postgres_connection
 # =====================================
 # CONFIGURAÇÕES DO SELENIUM
 # =====================================
-service = Service('C:\\sincroniza_BDP\\chromedriver-win64\\chromedriver.exe')
+service = Service('C:\\sincroniza_BDP\\chromedriver-win64\\chromedriver-win64/chromedriver.exe')
 
+
+#configurando pra habilitar a solicitação de onde salvar o arquivo baixado
 chrome_options = Options()
 chrome_options.add_experimental_option("prefs", {
-    "download.prompt_for_download": True,
-    "download.directory_upgrade": True,
-    "safebrowsing.enabled": True,
-    "safebrowsing.disable_download_protection": True
+  "download.prompt_for_download": True,  # Habilita o prompt para solicitar onde salvar o download
+  "download.directory_upgrade": True,
+  "safebrowsing.enabled": True,  # Habilita o Safe Browsing para permitir downloads não seguros
+  "safebrowsing.disable_download_protection": True  # Desabilita a proteção de download do Safe Browsing
 })
+navegator = webdriver.Chrome(service=service, options=chrome_options)
 
 # =====================================
 # VARIÁVEIS DO SISTEMA
@@ -30,7 +33,9 @@ url = 'http://192.168.0.5/'
 home = 'siimensis01.php'
 usuario = 'liberar.pedido'
 senha = '15735924'
-
+pedido = ''
+tipoerrado = 'Vendas Representante - Málagah ** Produto Acabado (MALAGAH)'
+tipocerto = 'VENDAS B2C - MALAGAH ** Produto Acabado (MALAGAH)'
 # =====================================
 # FUNÇÕES DE BANCO DE DADOS
 # =====================================
@@ -60,89 +65,143 @@ def marcar_como_liberado(idpedido):
 # =====================================
 # FUNÇÕES DE NAVEGAÇÃO
 # =====================================
-def abreWeb(navegator):
-    navegator.get(url)
-    navegator.find_element('xpath', '//*[@id="usuario"]').send_keys(usuario)
-    navegator.find_element('xpath', '//*[@id="senha"]').send_keys(senha)
-    navegator.find_element('xpath', '//*[@id="btnOK"]').click()
+def abreWeb():
+     #acessar stylezee
+     navegator.get(url)
 
-    time.sleep(3)
-    pyautogui.hotkey('enter')
+     #coloca dados de login
+     navegator.find_element('xpath', '//*[@id=\"usuario\"]').send_keys(usuario)
+     navegator.find_element('xpath', '//*[@id=\"senha\"]').send_keys(senha)
+     navegator.find_element('xpath', '//*[@id=\"btnOK\"]').click()
 
-    def find_window(url_str: str):
-        janelas = navegator.window_handles
-        for window in janelas:
-            navegator.switch_to.window(window)
-            if url_str in navegator.current_url:
-                break
-    find_window(home)
+     #esperar
+     time.sleep(3)
+     pyautogui.hotkey('enter')            
+          
+     #trocar janela
+     janelas = navegator.window_handles
+     #print(janelas)
+
+     #verificar se trocou de janela
+     def find_window(url:str):
+          janelas = navegator.window_handles
+          for window in janelas:
+               navegator.switch_to.window(window)
+               if url in navegator.current_url:
+                    #print(navegator.current_url)
+                    #print ('achei')
+                    break               
+     find_window(home)
+     return
 
 def confirmarestricao(pedido):
-    print(f"[INFO] Confirmando restrição para pedido {pedido}")
-    pyautogui.PAUSE = 0.2
-    pyautogui.FAILSAFE = True
-
-    # Abre menu de restrição
-    pyautogui.click(100, 200)  # Coordenada fictícia, ajuste se necessário
+    navegator.find_element('xpath', '//*[@id="atl1"]').click()
     time.sleep(2)
-
-    # Insere número do pedido
+    WebDriverWait(navegator, 10).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'dhtmlx_window_active'))
+    )
+    time.sleep(2)
+    pyautogui.hotkey('tab')
+    time.sleep(1)
     pyautogui.typewrite(str(pedido))
+    time.sleep(1)
+    pyautogui.hotkey('enter')
+
+    for _ in range(16
+                   ):
+        pyautogui.hotkey('tab')
+    time.sleep(1)
+    pyautogui.hotkey('enter')
+
+    time.sleep(10)
+    for _ in range(12):
+        pyautogui.hotkey('tab')
+    time.sleep(1)
+    pyautogui.hotkey('enter')
+    time.sleep(2)
+    pyautogui.moveTo (816,421)
+    pyautogui.click()
+    time.sleep(1)
+    pyautogui.typewrite(str(tipoerrado))
     pyautogui.hotkey('enter')
     time.sleep(1)
-
-    # Vários tabs até chegar na opção desejada
-    for _ in range(20):
-        pyautogui.hotkey('tab')
+    pyautogui.moveTo (816,421)
+    pyautogui.click()
+    time.sleep(1)
+    pyautogui.typewrite(str(tipocerto))
     pyautogui.hotkey('enter')
-
-    # Aguarda processar
+    time.sleep(1)
+    pyautogui.moveTo (555,821)
+    pyautogui.click()
     time.sleep(5)
+    pyautogui.moveTo (1416,284)
+    pyautogui.click()
+    time.sleep(1)
+    pyautogui.moveTo (729,818)
+    pyautogui.click()
+    time.sleep(1)
+    pyautogui.hotkey('enter')
+    time.sleep(2)
+    pyautogui.hotkey('enter')
+    time.sleep(25)
+    pyautogui.moveTo(1464, 294)
+    time.sleep(1)
+    pyautogui.click()
 
 def liberaanalisecredito(pedido):
-    print(f"[INFO] Liberando análise de crédito para pedido {pedido}")
-    pyautogui.PAUSE = 0.2
-    pyautogui.FAILSAFE = True
-
-    # Abre menu de crédito
-    pyautogui.click(120, 220)  # Coordenada fictícia, ajuste se necessário
+    navegator.find_element('xpath', '//*[@id="atl2"]').click()
     time.sleep(2)
-
-    # Insere número do pedido
+    WebDriverWait(navegator, 10).until(
+        EC.presence_of_element_located((By.CLASS_NAME, 'dhtmlx_window_active'))
+    )
+    time.sleep(3)
     pyautogui.typewrite(str(pedido))
+    time.sleep(1)
+    pyautogui.hotkey('enter')
+
+    for _ in range(11):
+        pyautogui.hotkey('tab')
+    time.sleep(1)
+    pyautogui.hotkey('enter')
+
+    time.sleep(5)
+    for _ in range(12):
+        pyautogui.hotkey('tab')
+    time.sleep(1)
     pyautogui.hotkey('enter')
     time.sleep(1)
-
-    # Vários tabs até chegar na opção desejada
-    for _ in range(15):
-        pyautogui.hotkey('tab')
     pyautogui.hotkey('enter')
 
-    # Aguarda processar
-    time.sleep(5)
+    time.sleep(15)
+    pyautogui.moveTo(1423, 283)
+    time.sleep(1)
+    pyautogui.click()
 
 # =====================================
 # PROGRAMA PRINCIPAL
 # =====================================
 if __name__ == "__main__":
-    print(f"[{datetime.now()}] Iniciando liberação de pedidos pendentes...")
+    agora = datetime.now()
+    print(f"[{agora.strftime('%H:%M:%S')}] Iniciando liberação de pedidos pendentes...")
     pedidos = buscar_pedidos_nao_liberados()
 
     if not pedidos:
-        print("[INFO] Nenhum pedido pendente para liberação.")
+        agora = datetime.now()
+        print(f"[{agora.strftime('%H:%M:%S')}] -[INFO] Nenhum pedido pendente para liberação.")
     else:
-        navegator = webdriver.Chrome(service=service, options=chrome_options)
-        abreWeb(navegator)
+        abreWeb()
 
         for idpedido, pedidosty in pedidos:
             try:
                 confirmarestricao(pedidosty)
                 liberaanalisecredito(pedidosty)
                 marcar_como_liberado(idpedido)
-                print(f"[OK] Pedido {pedidosty} processado e marcado como liberado.")
+                agora = datetime.now()
+                print(f"[{agora.strftime('%H:%M:%S')}] -[OK] Pedido {pedidosty} liberado com sucesso.")
             except Exception as e:
-                print(f"[ERRO] Falha ao processar pedido {pedidosty}: {e}")
+                agora = datetime.now() 
+                print(f"[{agora.strftime('%H:%M:%S')}] -[ERRO] Falha ao processar pedido {pedidosty}: {e}")
 
         navegator.quit()
-
-    print("[INFO] Processo concluído.")
+    agora = datetime.now()
+    print(f"[{agora.strftime('%H:%M:%S')}][INFO] Processo concluído.")
