@@ -49,7 +49,13 @@ if __name__ == "__main__":
         agora = datetime.now()
         minuto = agora.minute
 
-        if minuto % 10 == 4 and executado_pedido_minuto != minuto:
+        if minuto % 10 == 0 and executado_pedido_minuto != minuto:
+            executar_script_pedido()
+            time.sleep(2)  
+            libera_pedido()
+            executado_pedido_minuto = minuto
+
+        if minuto % 10 == 5 and executado_pedido_minuto != minuto:
             executar_script_pedido()
             time.sleep(2)  
             libera_pedido()

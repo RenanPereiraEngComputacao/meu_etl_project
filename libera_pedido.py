@@ -19,11 +19,12 @@ service = Service('C:\\sincroniza_BDP\\chromedriver-win64\\chromedriver-win64/ch
 #configurando pra habilitar a solicitação de onde salvar o arquivo baixado
 chrome_options = Options()
 chrome_options.add_experimental_option("prefs", {
-  "download.prompt_for_download": True,  # Habilita o prompt para solicitar onde salvar o download
-  "download.directory_upgrade": True,
-  "safebrowsing.enabled": True,  # Habilita o Safe Browsing para permitir downloads não seguros
-  "safebrowsing.disable_download_protection": True  # Desabilita a proteção de download do Safe Browsing
+    "download.prompt_for_download": True,
+    "download.directory_upgrade": True,
+    "safebrowsing.enabled": True,
+    "safebrowsing.disable_download_protection": True
 })
+chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 navegator = webdriver.Chrome(service=service, options=chrome_options)
 
 # =====================================
@@ -107,8 +108,7 @@ def confirmarestricao(pedido):
     time.sleep(1)
     pyautogui.hotkey('enter')
 
-    for _ in range(16
-                   ):
+    for _ in range(16):
         pyautogui.hotkey('tab')
     time.sleep(1)
     pyautogui.hotkey('enter')
