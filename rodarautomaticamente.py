@@ -24,21 +24,21 @@ def tem_pedidos_nao_sincronizados():
 
 def executar_script_pedido():
     if tem_pedidos_nao_sincronizados():
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Iniciando execução de sync_order.py")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de sync_order.py")
         subprocess.run(["python", "c:/meu_etl_project/sync_order.py"])
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Finalizou execução de sync_order.py\n")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de sync_order.py\n")
     else:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Nenhum pedido pendente. Ignorando sync_order.py.")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Nenhum pedido pendente. Ignorando sync_order.py.")
 
 def executar_script():
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Iniciando execução de att_estoque.py")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de att_estoque.py")
     subprocess.run(["python", "c:/meu_etl_project/att_estoque.py"])
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Finalizou execução de att_estoque.py\n")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de att_estoque.py\n")
 
 def libera_pedido():
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Iniciando execução do libera_pedido.py")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução do libera_pedido.py")
     subprocess.run(["python", "c:/meu_etl_project/libera_pedido.py"])
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Finalizou execução do libera_pedido.py\n")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução do libera_pedido.py\n")
 
 
 executado_pedido_minuto = None

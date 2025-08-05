@@ -113,7 +113,7 @@ def confirmarestricao(pedido):
     time.sleep(1)
     pyautogui.hotkey('enter')
 
-    time.sleep(10)
+    time.sleep(3)
     for _ in range(12):
         pyautogui.hotkey('tab')
     time.sleep(1)
@@ -133,17 +133,17 @@ def confirmarestricao(pedido):
     time.sleep(1)
     pyautogui.moveTo (555,821)
     pyautogui.click()
-    time.sleep(5)
+    time.sleep(15)
     pyautogui.moveTo (1416,284)
     pyautogui.click()
     time.sleep(1)
     pyautogui.moveTo (729,818)
     pyautogui.click()
-    time.sleep(1)
-    pyautogui.hotkey('enter')
     time.sleep(2)
     pyautogui.hotkey('enter')
-    time.sleep(25)
+    time.sleep(5)
+    pyautogui.hotkey('enter')
+    time.sleep(30)
     pyautogui.moveTo(1464, 294)
     time.sleep(1)
     pyautogui.click()
@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
     if not pedidos:
         agora = datetime.now()
-        print(f"[{agora.strftime('%H:%M:%S')}] -[INFO] Nenhum pedido pendente para liberação.")
+        print(f"[{agora.strftime('%H:%M:%S')}] Nenhum pedido pendente para liberação.")
     else:
         abreWeb()
 
@@ -197,11 +197,11 @@ if __name__ == "__main__":
                 liberaanalisecredito(pedidosty)
                 marcar_como_liberado(idpedido)
                 agora = datetime.now()
-                print(f"[{agora.strftime('%H:%M:%S')}] -[OK] Pedido {pedidosty} liberado com sucesso.")
+                print(f"[{agora.strftime('%H:%M:%S')}] [OK] Pedido {pedidosty} liberado com sucesso.")
             except Exception as e:
                 agora = datetime.now() 
-                print(f"[{agora.strftime('%H:%M:%S')}] -[ERRO] Falha ao processar pedido {pedidosty}: {e}")
+                print(f"[{agora.strftime('%H:%M:%S')}] Falha ao processar pedido {pedidosty}: {e}")
 
         navegator.quit()
     agora = datetime.now()
-    print(f"[{agora.strftime('%H:%M:%S')}][INFO] Processo concluído.")
+    print(f"[{agora.strftime('%H:%M:%S')}] Processo concluído.")
