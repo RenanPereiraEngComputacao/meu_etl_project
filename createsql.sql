@@ -46,7 +46,8 @@ CREATE TABLE orders (
     observacao           VARCHAR(5000),
     pedidosty            INTEGER,
     statusped            VARCHAR(50),
-    liberado             VARCHAR(50) default 'false'
+    liberado             VARCHAR(50) default 'false',
+    created_at           TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE order_itens (

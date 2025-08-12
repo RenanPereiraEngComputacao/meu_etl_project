@@ -52,13 +52,13 @@ if __name__ == "__main__":
         if minuto % 10 == 0 and executado_pedido_minuto != minuto:
             executar_script_pedido()
             time.sleep(2)  
-            libera_pedido()
+            #libera_pedido()
             executado_pedido_minuto = minuto
 
         if minuto % 10 == 5 and executado_pedido_minuto != minuto:
             executar_script_pedido()
             time.sleep(2)  
-            libera_pedido()
+            #libera_pedido()
             executado_pedido_minuto = minuto
 
         if minuto % 10 == 9 and executado_estoque_minuto != minuto:
