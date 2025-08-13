@@ -114,39 +114,16 @@ def confirmarestricao(pedido):
     pyautogui.hotkey('enter')
 
     time.sleep(3)
-    for _ in range(12):
+    for _ in range(14):
         pyautogui.hotkey('tab')
     time.sleep(1)
-    pyautogui.hotkey('enter')
-    time.sleep(2)
-    pyautogui.moveTo (816,421)
-    pyautogui.click()
-    time.sleep(1)
-    pyautogui.typewrite(str(tipoerrado))
-    pyautogui.hotkey('enter')
-    time.sleep(1)
-    pyautogui.moveTo (816,421)
-    pyautogui.click()
-    time.sleep(1)
-    pyautogui.typewrite(str(tipocerto))
-    pyautogui.hotkey('enter')
-    time.sleep(1)
-    pyautogui.moveTo (555,821)
-    pyautogui.click()
-    time.sleep(20)
-    pyautogui.moveTo (1416,284)
-    pyautogui.click()
+    pyautogui.hotkey('enter') 
     time.sleep(5)
-    pyautogui.moveTo (729,818)
+    pyautogui.hotkey('enter')    
+    time.sleep(25)
+    pyautogui.moveTo(1464, 294)    
     pyautogui.click()
-    time.sleep(2)
-    pyautogui.hotkey('enter')
-    time.sleep(5)
-    pyautogui.hotkey('enter')
-    time.sleep(35)
-    pyautogui.moveTo(1464, 294)
-    time.sleep(3)
-    pyautogui.click()
+    time.sleep(1)
 
 def liberaanalisecredito(pedido):
     navegator.find_element('xpath', '//*[@id="atl2"]').click()
@@ -181,14 +158,14 @@ def liberaanalisecredito(pedido):
 # PROGRAMA PRINCIPAL
 # =====================================
 if __name__ == "__main__":
-    agora = datetime.now()
-    print(f"[{agora.strftime('%H:%M:%S')}] Iniciando liberação de pedidos pendentes...")
     pedidos = buscar_pedidos_nao_liberados()
 
     if not pedidos:
         agora = datetime.now()
         print(f"[{agora.strftime('%H:%M:%S')}] Nenhum pedido pendente para liberação.")
     else:
+        agora = datetime.now()
+        print(f"[{agora.strftime('%H:%M:%S')}] Iniciando liberação de pedidos pendentes...")
         abreWeb()
 
         for idpedido, pedidosty in pedidos:
@@ -197,7 +174,7 @@ if __name__ == "__main__":
                 liberaanalisecredito(pedidosty)
                 marcar_como_liberado(idpedido)
                 agora = datetime.now()
-                print(f"[{agora.strftime('%H:%M:%S')}] [OK] Pedido {pedidosty} liberado com sucesso.")
+                print(f"[{agora.strftime('%H:%M:%S')}] Pedido {pedidosty} liberado com sucesso.")
             except Exception as e:
                 agora = datetime.now() 
                 print(f"[{agora.strftime('%H:%M:%S')}] Falha ao processar pedido {pedidosty}: {e}")
