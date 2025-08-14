@@ -81,7 +81,7 @@ def insert_into_postgres_produto(data, observacoes, conn):
             modo_lavagem,
             row["NCM_PRODUTO"],
             row["MARCA_PRODUTO"],
-            float(row["PESO_PRODUTO"]) if row["PESO_PRODUTO"] else 0.0,
+            float(row["PESO_PRODUTO"]) if row["PESO_PRODUTO"] else 0.14,
             row["COLECAO_PRODUTO"],
             nome_formatado,
             descricaoso if descricaoso else "NÃO INFORMADO",
