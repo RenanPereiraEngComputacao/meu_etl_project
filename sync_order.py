@@ -65,9 +65,7 @@ def main():
                 conn.commit()
                 print(f"Pedido {pedido['numeropedido']} sincronizado com sucesso. Número ERP: {numero_erp}")
             else:
-                print(f"Falha ao sincronizar pedido {pedido['numeropedido']}: {response.text}")
-
-                # --- Nova lógica de verificação ---
+                
                 try:
                     consulta = requests.get(
                         url="https://api.ctextil.com.br/api/v1/orders",
@@ -75,7 +73,7 @@ def main():
                             "page": 1,
                             "full_return": "true",
                             "status": 2,
-                            "customer": pedido["cnpj"],  # ou fixe se for sempre o mesmo
+                            "customer": 47070914000192,  # ou fixe se for sempre o mesmo
                             "presence_indicator": 0
                         },
                         headers={"Authorization": f"Bearer {os.getenv('ERP_API_TOKEN')}"}
