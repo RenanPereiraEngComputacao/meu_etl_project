@@ -67,6 +67,45 @@ def main():
             else:
                 print(f"Falha ao sincronizar pedido {pedido['numeropedido']}: {response.text}")
 
+                # --- Nova lógica de verificação ---
+                try:
+                    consulta = requests.get(
+                        url="https://api.ctextil.com.br/api/v1/orders",
+                        params={
+                            "page": 1,
+                            "full_return": "true",
+                            "status": 2,
+                            "customer": pedido["cnpj"],  # ou fixe se for sempre o mesmo
+                            "presence_indicator": 0
+                        },
+                        headers={"Authorization": f"Bearer {os.getenv('ERP_API_TOKEN')}"}
+                    )
+
+                    if consulta.status_code == 200:
+                        dados = consulta.json().get("data", [])
+                        encontrado = False
+                        for ped in dados:
+                            note = ped.get("note", "")
+                            if f"PED-{pedido['numeropedido']}" in note:
+                                numero_erp = ped.get("number")
+                                with conn.cursor() as cursor:
+                                    cursor.execute(
+                                        "UPDATE orders SET statussincronismo = TRUE, statusped = 'Pedido Recebido', pedidosty = %s WHERE idpedido = %s;",
+                                        (numero_erp, pedido["idpedido"])
+                                    )
+                                conn.commit()
+                                print(f"Pedido {pedido['numeropedido']} confirmado via consulta. Número ERP: {numero_erp}")
+                                encontrado = True
+                                break
+
+                        if not encontrado:
+                            print(f"Pedido {pedido['numeropedido']} não encontrado no ERP após erro {response.status_code}.")
+                    else:
+                        print(f"Erro ao consultar ERP para confirmar pedido {pedido['numeropedido']}: {consulta.text}")
+
+                except Exception as e:
+                    print(f"Erro ao tentar confirmar pedido {pedido['numeropedido']} no ERP: {e}")
+
     except Exception as e:
         print(f"Erro durante sincronização: {e}")
     finally:
