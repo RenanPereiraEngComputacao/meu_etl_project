@@ -187,12 +187,10 @@ def gera_romaneio(pedido) :
     pyautogui.hotkey('tab')
     time.sleep(1)
     pyautogui.hotkey('backspace')
-    time.sleep(1)
     pyautogui.typewrite(str(pedido))
     pyautogui.hotkey('tab')
     for _ in range(9):
         pyautogui.hotkey('backspace')
-    time.sleep(1)
     pyautogui.typewrite(str(pedido))
     for _ in range(15):
         pyautogui.hotkey('tab')
@@ -203,48 +201,18 @@ def gera_romaneio(pedido) :
         pyautogui.hotkey('tab')
     time.sleep(1)
     pyautogui.hotkey('enter')
-    time.sleep(2)
-    pyautogui.hotkey('enter')
     time.sleep(5)
-    pyautogui.moveTo(1361, 261)
-    time.sleep(1)
-    pyautogui.click()
-    time.sleep(1)
-    pyautogui.moveTo(1421, 272)
-    time.sleep(1)
-    pyautogui.click()
-    time.sleep(3)
 
 
 
-# =====================================
-# PROGRAMA PRINCIPAL
-# =====================================
-if __name__ == "__main__":
-    pedidos = buscar_pedidos_nao_liberados()
-
-    if not pedidos:
-        agora = datetime.now()
-        print(f"[{agora.strftime('%H:%M:%S')}] Nenhum pedido pendente para liberação.")
-    else:
-        agora = datetime.now()
-        print(f"[{agora.strftime('%H:%M:%S')}] Iniciando liberação de pedidos pendentes...")
-        abreWeb()
-
-        for idpedido, pedidosty in pedidos:
-            try:
-                confirmarestricao(pedidosty)
-                liberaanalisecredito(pedidosty)
-                marcar_como_liberado(idpedido)
-                agora = datetime.now()
-                print(f"[{agora.strftime('%H:%M:%S')}] Pedido {pedidosty} liberado com sucesso.")
-                gera_romaneio(pedidosty)
-                agora = datetime.now()
-                print(f"[{agora.strftime('%H:%M:%S')}] Romaneio para o pedido {pedidosty} gerado com sucesso.")
-            except Exception as e:
-                agora = datetime.now() 
-                print(f"[{agora.strftime('%H:%M:%S')}] Falha ao processar pedido {pedidosty}: {e}")
-
-        navegator.quit()
-    agora = datetime.now()
-    print(f"[{agora.strftime('%H:%M:%S')}] Processo concluído.")
+abreWeb()
+time.sleep(15)
+x,y =   pyautogui.position()
+print('posição 1 :')
+print(x,y)
+pyautogui.click()
+time.sleep(15)
+print('posição 2 :')
+x,y =   pyautogui.position()
+print(x,y)
+pyautogui.click()
