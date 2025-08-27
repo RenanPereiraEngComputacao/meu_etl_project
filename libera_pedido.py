@@ -205,10 +205,6 @@ def gera_romaneio(pedido) :
     pyautogui.hotkey('enter')
     time.sleep(2)
     pyautogui.hotkey('enter')
-    time.sleep(5)
-    pyautogui.moveTo(1361, 261)
-    time.sleep(1)
-    pyautogui.click()
     time.sleep(1)
     pyautogui.moveTo(1421, 272)
     time.sleep(1)
@@ -232,6 +228,11 @@ if __name__ == "__main__":
         abreWeb()
 
         for idpedido, pedidosty in pedidos:
+            if pedidosty is None:
+                agora = datetime.now()
+                print(f"[{agora.strftime('%H:%M:%S')}] Pedido {idpedido} ignorado (pedidosty está vazio).")
+                continue
+            
             try:
                 confirmarestricao(pedidosty)
                 liberaanalisecredito(pedidosty)
