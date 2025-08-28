@@ -230,7 +230,7 @@ if __name__ == "__main__":
         for idpedido, pedidosty in pedidos:
             if pedidosty is None:
                 agora = datetime.now()
-                print(f"[{agora.strftime('%H:%M:%S')}] Pedido {idpedido} ignorado (pedidosty está vazio).")
+                print(f"[{agora.strftime('%H:%M:%S')}] Pedido {idpedido} ignorado (pedidosty está vazio pois ainda não enviou por API).")
                 continue
             
             try:
