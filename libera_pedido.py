@@ -1,23 +1,23 @@
 import time
 import pyautogui
 from datetime import datetime, timedelta
-from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import psycopg2
 from DBconect.postgres_conn import get_postgres_connection
+from DBtratament.logger import registrar_log
+import contextlib
+import io
+import sys
 
 # =====================================
 # CONFIGURAÇÕES DO SELENIUM
 # =====================================
 service = Service('C:\\sincroniza_BDP\\chromedriver-win64\\chromedriver-win64/chromedriver.exe')
 
-
-#configurando pra habilitar a solicitação de onde salvar o arquivo baixado
 chrome_options = Options()
 chrome_options.add_experimental_option("prefs", {
     "download.prompt_for_download": True,
@@ -35,14 +35,12 @@ url = 'http://192.168.0.5/'
 home = 'siimensis01.php'
 usuario = 'liberar.pedido'
 senha = '15735924'
-pedido = ''
 tipoerrado = 'Vendas Representante - Málagah ** Produto Acabado (MALAGAH)'
 tipocerto = 'VENDAS B2C - MALAGAH ** Produto Acabado (MALAGAH)'
 agora = datetime.now()
-data_antiga = agora - timedelta(days=5)
-data_futura = agora + timedelta(days=5)
-data_antiga = data_antiga.strftime("%d/%m/%Y")
-data_futura = data_futura.strftime("%d/%m/%Y")
+data_antiga = (agora - timedelta(days=5)).strftime("%d/%m/%Y")
+data_futura = (agora + timedelta(days=5)).strftime("%d/%m/%Y")
+
 # =====================================
 # FUNÇÕES DE BANCO DE DADOS
 # =====================================
@@ -73,33 +71,20 @@ def marcar_como_liberado(idpedido):
 # FUNÇÕES DE NAVEGAÇÃO
 # =====================================
 def abreWeb():
-     #acessar stylezee
-     navegator.get(url)
+    navegator.get(url)
+    navegator.find_element('xpath', '//*[@id="usuario"]').send_keys(usuario)
+    navegator.find_element('xpath', '//*[@id="senha"]').send_keys(senha)
+    navegator.find_element('xpath', '//*[@id="btnOK"]').click()
+    time.sleep(3)
+    pyautogui.hotkey('enter')
 
-     #coloca dados de login
-     navegator.find_element('xpath', '//*[@id=\"usuario\"]').send_keys(usuario)
-     navegator.find_element('xpath', '//*[@id=\"senha\"]').send_keys(senha)
-     navegator.find_element('xpath', '//*[@id=\"btnOK\"]').click()
-
-     #esperar
-     time.sleep(3)
-     pyautogui.hotkey('enter')            
-          
-     #trocar janela
-     janelas = navegator.window_handles
-     #print(janelas)
-
-     #verificar se trocou de janela
-     def find_window(url:str):
-          janelas = navegator.window_handles
-          for window in janelas:
-               navegator.switch_to.window(window)
-               if url in navegator.current_url:
-                    #print(navegator.current_url)
-                    #print ('achei')
-                    break               
-     find_window(home)
-     return
+    def find_window(url: str):
+        janelas = navegator.window_handles
+        for window in janelas:
+            navegator.switch_to.window(window)
+            if url in navegator.current_url:
+                break
+    find_window(home)
 
 def confirmarestricao(pedido):
     navegator.find_element('xpath', '//*[@id="atl1"]').click()
@@ -123,11 +108,11 @@ def confirmarestricao(pedido):
     for _ in range(14):
         pyautogui.hotkey('tab')
     time.sleep(1)
-    pyautogui.hotkey('enter') 
+    pyautogui.hotkey('enter')
     time.sleep(5)
-    pyautogui.hotkey('enter')    
+    pyautogui.hotkey('enter')
     time.sleep(25)
-    pyautogui.moveTo(1464, 294)    
+    pyautogui.moveTo(1464, 294)
     pyautogui.click()
     time.sleep(1)
 
@@ -160,7 +145,7 @@ def liberaanalisecredito(pedido):
     time.sleep(1)
     pyautogui.click()
 
-def gera_romaneio(pedido) :
+def gera_romaneio(pedido):
     navegator.find_element('xpath', '//*[@id="atl3"]').click()
     time.sleep(2)
     WebDriverWait(navegator, 10).until(
@@ -211,12 +196,10 @@ def gera_romaneio(pedido) :
     pyautogui.click()
     time.sleep(3)
 
-
-
 # =====================================
 # PROGRAMA PRINCIPAL
 # =====================================
-if __name__ == "__main__":
+def main():
     pedidos = buscar_pedidos_nao_liberados()
 
     if not pedidos:
@@ -224,7 +207,7 @@ if __name__ == "__main__":
         print(f"[{agora.strftime('%H:%M:%S')}] Nenhum pedido pendente para liberação.")
     else:
         agora = datetime.now()
-        print(f"[{agora.strftime('%H:%M:%S')}] Iniciando liberação de pedidos pendentes...")        
+        print(f"[{agora.strftime('%H:%M:%S')}] Iniciando liberação de pedidos pendentes...")
 
         for idpedido, pedidosty in pedidos:
             if pedidosty is None:
@@ -242,9 +225,18 @@ if __name__ == "__main__":
                 agora = datetime.now()
                 print(f"[{agora.strftime('%H:%M:%S')}] Romaneio para o pedido {pedidosty} gerado com sucesso.")
             except Exception as e:
-                agora = datetime.now() 
+                agora = datetime.now()
                 print(f"[{agora.strftime('%H:%M:%S')}] Falha ao processar pedido {pedidosty}: {e}")
 
         navegator.quit()
+
     agora = datetime.now()
     print(f"[{agora.strftime('%H:%M:%S')}] Processo concluído.")
+
+
+if __name__ == "__main__":
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        main()
+
+    registrar_log("libera_pedido.py", buffer.getvalue())

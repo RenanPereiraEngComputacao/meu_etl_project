@@ -68,6 +68,7 @@ app.post("/api/run-script/:scriptName", authenticateToken, (req, res) => {
     "att_produtos.py",
     "sync_order.py",
     "att_clientes.py",
+    "libera_pedido.py",
   ];
 
   if (!allowedScripts.includes(scriptName)) {

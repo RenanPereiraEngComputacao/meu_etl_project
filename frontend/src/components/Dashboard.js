@@ -20,8 +20,9 @@ const drawerWidth = 240;
 const scripts = [
   { name: "att_estoque.py", label: "Atualizar Estoque" },
   { name: "att_produtos.py", label: "Atualizar Produtos" },
-  { name: "sync_order.py", label: "Sincronizar Pedidos" },
   { name: "att_clientes.py", label: "Atualizar Clientes" },
+  { name: "sync_order.py", label: "Sincronizar Pedidos" },  
+  { name: "libera_pedido.py", label: "Liberar e Romanear pedidos no CTextil" },
 ];
 
 function Dashboard({ onLogout }) {
