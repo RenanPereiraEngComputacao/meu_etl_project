@@ -207,14 +207,14 @@ def main():
         print(f"[{agora.strftime('%H:%M:%S')}] Nenhum pedido pendente para liberação.")
     else:
         agora = datetime.now()
-        print(f"[{agora.strftime('%H:%M:%S')}] Iniciando liberação de pedidos pendentes...")
-
+        #print(f"[{agora.strftime('%H:%M:%S')}] Iniciando liberação de pedidos pendentes...")
+        abreWeb()
         for idpedido, pedidosty in pedidos:
             if pedidosty is None:
                 agora = datetime.now()
                 print(f"[{agora.strftime('%H:%M:%S')}] Pedido {idpedido} ignorado (pedidosty está vazio pois ainda não enviou por API).")
                 continue
-            abreWeb()
+            
             try:
                 confirmarestricao(pedidosty)
                 liberaanalisecredito(pedidosty)
@@ -231,7 +231,7 @@ def main():
         navegator.quit()
 
     agora = datetime.now()
-    print(f"[{agora.strftime('%H:%M:%S')}] Processo concluído.")
+    #print(f"[{agora.strftime('%H:%M:%S')}] Processo concluído.")
 
 
 if __name__ == "__main__":

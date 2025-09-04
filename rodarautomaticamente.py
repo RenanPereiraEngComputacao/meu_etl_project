@@ -21,6 +21,18 @@ def tem_pedidos_nao_sincronizados():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao verificar pedidos não sincronizados: {e}")
         return False
+    
+def tem_pedidos_nao_liberados():
+    try:
+        conn = get_postgres_connection()
+        with contextlib.closing(conn.cursor()) as cursor:
+            cursor.execute("SELECT 1 FROM orders WHERE liberado = false LIMIT 1")
+            resultado = cursor.fetchone()
+        conn.close()
+        return resultado is not None
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao verificar pedidos não liberados: {e}")
+        return False
 
 def executar_script_pedido():
     try:
@@ -43,9 +55,12 @@ def executar_script():
 
 def libera_pedido():
     try:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução do libera_pedido.py")
-        subprocess.run(["python", "c:/meu_etl_project/libera_pedido.py"], check=False)
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução do libera_pedido.py\n")
+        if tem_pedidos_nao_liberados():
+             print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução do libera_pedido.py")
+             subprocess.run(["python", "c:/meu_etl_project/libera_pedido.py"], check=False)
+             print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução do libera_pedido.py\n")
+        else:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Nenhum pedido pendente. Ignorando libera_pedido.py.")
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar libera_pedido.py: {e}")
 

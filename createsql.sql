@@ -46,7 +46,7 @@ CREATE TABLE orders (
     observacao           VARCHAR(5000),
     pedidosty            INTEGER,
     statusped            VARCHAR(50),
-    liberado             VARCHAR(50) default 'false',
+    liberado             BOOLEAN NOT NULL DEFAULT FALSE,
     created_at           TIMESTAMPTZ DEFAULT now()
 );
 
