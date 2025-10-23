@@ -18,3 +18,18 @@ def get_postgres_connection():
     except Exception as e:
         print(f"Erro na conexão com PostgreSQL: {e}")
         raise
+
+def get_postgres_connection2():
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("PG_HOST"),
+            port=os.getenv("PG_PORT"),
+            user=os.getenv("PG_USER"),
+            password=os.getenv("PG_PASSWORD"),
+            dbname=os.getenv("PG_DATABASE2")
+        )
+        print("Conexão estabelecida com sucesso Postgres.")
+        return conn
+    except Exception as e:
+        print(f"Erro na conexão com PostgreSQL: {e}")
+        raise

@@ -140,7 +140,7 @@ def liberaanalisecredito(pedido):
     time.sleep(1)
     pyautogui.hotkey('enter')
 
-    time.sleep(15)
+    time.sleep(10)
     pyautogui.moveTo(1423, 283)
     time.sleep(1)
     pyautogui.click()

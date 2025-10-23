@@ -11,7 +11,16 @@ def get_estoque_saldo_query():
 def get_reserva_query():
     return "SELECT seqrefer_bi, seqcores_bi, seqtaman_bi, seqgruarm_bi, resqtde_dc FROM indreserva WHERE seqgruarm_bi = 1;"
 
+def get_estoque_saldo_query2():
+    return "SELECT seqrefer_bi, seqcores_bi, seqtaman_bi, seqgruarm_bi, estqtde_dc, estdata_dt FROM indestoquesaldo WHERE seqgruarm_bi = 1;"
+
+def get_reserva_query2():
+    return "SELECT seqrefer_bi, seqcores_bi, seqtaman_bi, seqgruarm_bi, resqtde_dc FROM indreserva WHERE seqgruarm_bi = 1;"
+
 def get_referencias_query():
+    return "SELECT seqrefer_dc, refcodigo_ch, refdescri_ch FROM indrefer WHERE seqtipos_dc = 26;"
+
+def get_referencias_query2():
     return "SELECT seqrefer_dc, refcodigo_ch, refdescri_ch FROM indrefer WHERE seqtipos_dc = 26;"
 
 def get_cores_query():
@@ -48,6 +57,29 @@ def get_produtos_query():
         COLECAO_PRODUTO != 'VERÃO 2022' AND
         COLECAO_PRODUTO != 'INVERNO 2022' AND
         COLECAO_PRODUTO != 'VERÃO 2023' 
+    GROUP BY 
+        REFERENCIA_PRODUTO, DESCRICAO_PRODUTO;
+    
+    """
+def get_produtos_query2():
+    return """
+    SELECT 
+        MIN(CODIGO_INTERNO_PRODUTO) AS CODIGO_INTERNO_PRODUTO,
+        REFERENCIA_PRODUTO,
+        DESCRICAO_PRODUTO,
+        GROUP_CONCAT(DISTINCT COR_PANTONE_PRODUTO SEPARATOR ';') AS CORESID,
+        GROUP_CONCAT(DISTINCT DESCRICAO_COR_PRODUTO SEPARATOR ';') AS CORES,
+        GROUP_CONCAT(DISTINCT TAMANHO_PRODUTO SEPARATOR ';') AS GRADE,
+        MAX(COMPOSICAO) AS COMPOSICAO,
+        MAX(MODO_LAVAR) AS MODO_LAVAR,
+        MAX(NCM_PRODUTO) AS NCM_PRODUTO,
+        MAX(MARCA_PRODUTO) AS MARCA_PRODUTO,
+        MAX(PESO_PRODUTO) AS PESO_PRODUTO,
+        MAX(COLECAO_PRODUTO) AS COLECAO_PRODUTO
+    FROM 
+        VW_CTO_PRODUTO
+    WHERE
+        MARCA_PRODUTO = 'IT´S MY' 
     GROUP BY 
         REFERENCIA_PRODUTO, DESCRICAO_PRODUTO;
     
