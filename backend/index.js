@@ -131,6 +131,29 @@ app.get("/api/logs", authenticateToken, async (req, res) => {
   }
 });
 
+
+
+app.get("/api/list", authenticateToken, async (req, res) => {
+  const { script, limit } = req.query;
+
+  const queryParams = [];
+  let query = "SELECT * FROM public.orders ORDER BY created_at DESC";
+  
+  // aplica LIMIT se informado, senão usa 20
+  const limitValue = parseInt(limit) || 20;
+  queryParams.push(limitValue);
+  query += ` LIMIT $${queryParams.length}`;
+
+  try {
+    const result = await pool.query(query, queryParams);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Erro ao buscar pedidos:", error);
+    res.status(500).json({ message: "Erro ao buscar pedidos." });
+  }
+});
+
+
 // Inicializa o servidor
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
