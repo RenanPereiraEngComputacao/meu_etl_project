@@ -138,11 +138,8 @@ app.get("/api/list", authenticateToken, async (req, res) => {
 
   const queryParams = [];
   let query = "SELECT * FROM public.orders ORDER BY created_at DESC";
-  
-  // aplica LIMIT se informado, senão usa 20
-  const limitValue = parseInt(limit) || 20;
-  queryParams.push(limitValue);
-  query += ` LIMIT $${queryParams.length}`;
+
+
 
   try {
     const result = await pool.query(query, queryParams);
