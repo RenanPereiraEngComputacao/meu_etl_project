@@ -130,11 +130,36 @@ function Dashboard({ onLogout }) {
     }
 
     const data = pedidosFiltrados.map((p) => ({
-      Numero_Pedido: p.numeropedido,
+      // Colunas existentes na tabela
+      Numero_Pedido: p.idpedido,
+      Data: new Date(
+        // 1. Obtém o timestamp (milissegundos)
+        new Date(p.created_at).getTime() - 
+        // 2. Subtrai 3 horas (3 * 60m * 60s * 1000ms)
+        (3 * 60 * 60 * 1000)
+      ).toLocaleDateString("pt-BR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }),
       Cliente: p.nomecliente,
-      Status_Integração: p.statussincronismo ? "Sincronizado" : "Não Sincronizado",
-      N_Pedido_Ctextil: p.pedidosty,
-      Status_Ctextil: p.liberado ? "Em romaneio" : "Restrição",
+      Estado: p.estado, // Adicionado
+      Email: p.email, // Adicionado
+      Telefone: p.telefone, // Adicionado
+      Transportadora: p.transportadora, // Adicionado
+      Pagamento: p.pagamento, // Adicionado
+      Bandeira: p.bandeira, // Adicionado
+      Parcelamento: p.parcelamento, // Adicionado
+      Pecas: p.qtdpecas, // Adicionado (corrigido para 'Pecas')
+      Valor_Pedido: p.valorpedido, // Adicionado
+      Valor_Frete: p.valorfrete, // Adicionado
+      Pedido_Bling: p.pedidobling, // Adicionado
+      NFE_Bling: p.nfebling, // Adicionado
+
+      // NOVAS COLUNAS CALCULADAS
+      Status_Integracao: p.statussincronismo ? "Sincronizado" : "Não Sincronizado",
+      N_Pedido_Ctextil: p.pedidosty || "Falta Sincronizar", // Usando o mesmo fallback da tabela
+      Status_Ctextil: p.liberado ? "Em Romaneio" : "Restrição",
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -313,18 +338,55 @@ function Dashboard({ onLogout }) {
                 <TableHead>
                   <TableRow>
                     <TableCell>Número Pedido</TableCell>
+                    <TableCell>Data</TableCell>
                     <TableCell>Cliente</TableCell>
+                    <TableCell>Estado</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Telefone</TableCell>
+                    <TableCell>Transportadora</TableCell>
+                    <TableCell>Pagamento</TableCell>
+                    <TableCell>Bandeira</TableCell>
+                    <TableCell>Parcelamento</TableCell>
+                    <TableCell>Peças</TableCell>
+                    <TableCell>Valor Pedido</TableCell>
+                    <TableCell>Valor Frete</TableCell>
                     <TableCell>Status Integração</TableCell>
                     <TableCell>N° Pedido Ctextil</TableCell>
                     <TableCell>Status Ctextil</TableCell>
+                    <TableCell>Pedido Bling</TableCell>
+                    <TableCell>NFE Bling</TableCell>
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
                   {pedidosFiltrados.map((p) => (
                     <TableRow key={p.idpedido}>
-                      <TableCell>{p.numeropedido}</TableCell>
+                      <TableCell>{p.idpedido}</TableCell>
+                      <TableCell>
+                        {new Date(
+                          // 1. Obtém o timestamp (milissegundos)
+                          new Date(p.created_at).getTime() - 
+                          // 2. Subtrai 3 horas (3 * 60m * 60s * 1000ms)
+                          (3 * 60 * 60 * 1000)
+                        )
+                          // 3. Formata a nova data
+                          .toLocaleDateString("pt-BR", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          })}
+                      </TableCell>
                       <TableCell>{p.nomecliente}</TableCell>
+                      <TableCell>{p.estado}</TableCell>
+                      <TableCell>{p.email}</TableCell>
+                      <TableCell>{p.telefone}</TableCell>
+                      <TableCell>{p.transportadora}</TableCell>
+                      <TableCell>{p.pagamento}</TableCell>
+                      <TableCell>{p.bandeira}</TableCell>
+                      <TableCell>{p.parcelamento}</TableCell>
+                      <TableCell>{p.qtdpecas}</TableCell>
+                      <TableCell>{p.valorpedido}</TableCell>
+                      <TableCell>{p.valorfrete}</TableCell>
                       <TableCell>
                         <StatusChip
                           status={p.statussincronismo ? "Sincronizado" : "Não Sincronizado"}
@@ -334,6 +396,8 @@ function Dashboard({ onLogout }) {
                       <TableCell>
                         <StatusChip status={p.liberado ? "Em Romaneio" : "Restrição"} />
                       </TableCell>
+                      <TableCell>{p.pedidobling}</TableCell>
+                      <TableCell>{p.nfebling}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -16,3 +16,4 @@ def get_itens_por_pedido():
         WHERE
             idpedido = %s;
     """
+
