@@ -64,6 +64,24 @@ def libera_pedido():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar libera_pedido.py: {e}")
 
+def preenche_email_telefone():
+    try:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução do preencheemailtelefone.py")
+        subprocess.run(["python", "c:/meu_etl_project/preencheemailtelefone.py"], check=False)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução do preencheemailtelefone.py\n")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar preencheemailtelefone.py: {e}")
+
+def bling_sync_docs():
+    try:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução do bling_sync_docs.py")
+        subprocess.run(["python", "c:/meu_etl_project/bling_sync_docs.py"], check=False)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução do bling_sync_docs.py\n")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar bling_sync_docs.py: {e}")
+
+
+
 
 executado_pedido_minuto = None
 executado_estoque_minuto = None
@@ -78,16 +96,19 @@ if __name__ == "__main__":
                 executar_script_pedido()
                 time.sleep(2)  
                 libera_pedido()
+                preenche_email_telefone()
                 executado_pedido_minuto = minuto
 
             if minuto % 10 == 5 and executado_pedido_minuto != minuto:
                 executar_script_pedido()
                 time.sleep(2)  
                 libera_pedido()
+                preenche_email_telefone()
                 executado_pedido_minuto = minuto
 
             if minuto % 10 == 9 and executado_estoque_minuto != minuto:
                 executar_script()
+                bling_sync_docs()
                 executado_estoque_minuto = minuto
 
             print(f"[{agora.strftime('%H:%M:%S')}] Aguardando próximo ciclo...")

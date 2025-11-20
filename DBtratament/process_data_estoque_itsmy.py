@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MULTIPLICADOR = float(os.getenv("PRECO_MULTIPLICADOR", "2.0"))
+MULTIPLICADOR = float(os.getenv("PRECO_MULTIPLICADORITSMY", "1.0"))
 
 # Função para arredondar o preço para o próximo múltiplo de 0.90
 def arredondar_para_90(valor):

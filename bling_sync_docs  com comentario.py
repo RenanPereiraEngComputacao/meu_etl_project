@@ -19,7 +19,7 @@ API_BASE = os.getenv("LOCAL_API_URL")
 PEDIDOS_URL = f"{API_BASE}/bling/pedidos/vendas"
 NFE_URL = f"{API_BASE}/bling/nfe"
 
-SCRIPT_NAME = "bling_sync_docs.py"
+SCRIPT_NAME = "bling_sync_docs"
 
 print("programa iniciado")
 
@@ -92,7 +92,7 @@ def update_order_data(cursor, conn, idpedido, set_clause, params, success_msg):
 # =====================================
 def run_sync():
     registrar_log(SCRIPT_NAME, "Iniciando sincronização geral...")
-    
+    print("run_sync iniciado")
 
     conn = None # Inicializa para garantir o fechamento no finally
 
@@ -127,8 +127,8 @@ def run_sync():
         pedidobling = row["pedidobling"]
         nfebling = row["nfebling"]
         
-        #print(f"\nProcessando pedido {idpedido}...")
-        #registrar_log(SCRIPT_NAME, f"Processando pedido {idpedido}...")
+        print(f"\nProcessando pedido {idpedido}...")
+        registrar_log(SCRIPT_NAME, f"Processando pedido {idpedido}...")
 
         # ------------------------------------------------------------
         # 🔵 1) PROCESSAR /pedidos/vendas (Se pedidobling for NULL)
@@ -184,6 +184,9 @@ def run_sync():
                 )
             else:
                 registrar_log(SCRIPT_NAME, f" → Nenhum pedido encontrado no Bling para {idpedido}")
+                print(f" → Nenhum pedido encontrado no Bling para {idpedido}")
+        else:
+            print(f" → pedidobling já preenchido: {pedidobling}")
             
         # ------------------------------------------------------------
         # 🟣 2) PROCESSAR /nfe (Se nfebling for NULL)
@@ -205,10 +208,13 @@ def run_sync():
                 nfe_objeto = data["data"][0] 
                 numero_nfe = nfe_objeto.get("numero")
                 
+                print(f" → NF-e encontrada: {numero_nfe}")
+                
                 # Tenta extrair a UF (Estado)
                 try:
                     # Navegação segura para extrair a UF
                     uf = nfe_objeto.get("contato", {}).get("endereco", {}).get("uf")
+                    print(f" → UF encontrada: {uf}")
                 except Exception: 
                     uf = None
                     registrar_log(SCRIPT_NAME, f"Aviso: UF não encontrada ou estrutura JSON inesperada na NF-e para {idpedido}")
@@ -223,14 +229,15 @@ def run_sync():
                     )
                 else:
                     registrar_log(SCRIPT_NAME, f" → NF-e encontrada, mas sem 'numero' para {idpedido}")
-                    
+                    print(f" → NF-e encontrada, mas sem 'numero' para {idpedido}")
                     
             else:
                 # Esta mensagem é disparada se 'data' for None (erro de requisição/backend) 
                 # ou se a lista 'data' estiver vazia (nenhuma NF-e encontrada)
                 registrar_log(SCRIPT_NAME, f" → Nenhuma NF-e encontrada ou erro de requisição para {idpedido}")
-                
-        
+                print(f" → Nenhuma NF-e encontrada para {idpedido}")
+        else:
+            print(f" → nfebling já preenchida: {nfebling}")
     # =====================================
     # FINALIZAÇÃO
     # =====================================

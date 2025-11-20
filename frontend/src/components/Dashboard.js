@@ -113,7 +113,7 @@ function Dashboard({ onLogout }) {
     }
   };
 
-  // 🔥 Agora pedidosFiltrados existe antes de ser usado no XLSX
+  
   const pedidosFiltrados = pedidos.filter((p) => {
     const termo = filtro.toLowerCase();
     return (
@@ -122,7 +122,7 @@ function Dashboard({ onLogout }) {
     );
   });
 
-  // 🔥 Agora funciona, pois está dentro do componente e vê pedidosFiltrados
+
   const exportarXLSX = () => {
     if (pedidosFiltrados.length === 0) {
       alert("Nenhum dado para exportar.");
