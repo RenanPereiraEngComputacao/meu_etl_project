@@ -127,7 +127,7 @@ def run_sync():
         pedidobling = row["pedidobling"]
         nfebling = row["nfebling"]
         
-        #print(f"\nProcessando pedido {idpedido}...")
+        print(f"\nProcessando pedido {idpedido}...")
         #registrar_log(SCRIPT_NAME, f"Processando pedido {idpedido}...")
 
         # ------------------------------------------------------------
@@ -174,7 +174,7 @@ def run_sync():
                 except (ValueError, TypeError) as e:
                     registrar_log(SCRIPT_NAME, f"Erro fatal ao converter/comparar IDs do pedido {idpedido}: {e}")
                     continue
-                # FIM DA CORREÇÃO
+                
 
                 update_order_data(
                     cursor, conn, idpedido,
