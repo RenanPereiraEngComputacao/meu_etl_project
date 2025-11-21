@@ -223,6 +223,30 @@ app.get("/bling/nfe", async (req, res) => {
     res.status(500).send("Erro ao consultar NF-e.");
   }
 });
+
+app.get("/bling/nfe_detalhe", async (req, res) => {
+  try {
+    const { id } = req.query; // Espera o ID da NF-e do Bling (nfe_id)
+
+    if (!id) {
+      return res.status(400).json({ message: "ID da NF-e (parametro 'id') é obrigatório" });
+    }
+
+    // O Bling permite buscar uma NF-e por ID via: /nfe/{id}
+    const result = await blingRequest(
+      "GET",
+      `/nfe/${id}` // Passa o ID diretamente na URL do endpoint
+    );
+    
+    // IMPORTANTE: Este endpoint do Bling retorna o objeto da NF-e diretamente, 
+    // não encapsulado em 'data'.
+    res.json(result.data); 
+
+  } catch (error) {
+    console.error("Erro no /bling/nfe_detalhe:", error.response?.data || error);
+    res.status(500).send("Erro ao consultar detalhes da NF-e.");
+  }
+});
 // ============================================================================
 // LOGIN
 // ============================================================================

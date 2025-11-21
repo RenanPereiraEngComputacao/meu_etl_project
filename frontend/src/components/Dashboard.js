@@ -152,6 +152,7 @@ function Dashboard({ onLogout }) {
       Parcelamento: p.parcelamento, // Adicionado
       Pecas: p.qtdpecas, // Adicionado (corrigido para 'Pecas')
       Valor_Pedido: p.valorpedido, // Adicionado
+      Valor_nota: p.valornota, // Adicionado
       Valor_Frete: p.valorfrete, // Adicionado
       Pedido_Bling: p.pedidobling, // Adicionado
       NFE_Bling: p.nfebling, // Adicionado
@@ -349,6 +350,7 @@ function Dashboard({ onLogout }) {
                     <TableCell>Parcelamento</TableCell>
                     <TableCell>Peças</TableCell>
                     <TableCell>Valor Pedido</TableCell>
+                    <TableCell>Valor Nota</TableCell>
                     <TableCell>Valor Frete</TableCell>
                     <TableCell>Status Integração</TableCell>
                     <TableCell>N° Pedido Ctextil</TableCell>
@@ -386,6 +388,7 @@ function Dashboard({ onLogout }) {
                       <TableCell>{p.parcelamento}</TableCell>
                       <TableCell>{p.qtdpecas}</TableCell>
                       <TableCell>{p.valorpedido}</TableCell>
+                      <TableCell>{p.valornota}</TableCell>
                       <TableCell>{p.valorfrete}</TableCell>
                       <TableCell>
                         <StatusChip
