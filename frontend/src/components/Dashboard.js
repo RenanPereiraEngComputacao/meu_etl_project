@@ -64,6 +64,20 @@ const StatusChip = ({ status }) => {
   );
 };
 
+const formatPhoneNumber = (phoneNumber) => {
+  if (!phoneNumber) return '';
+  const cleaned = String(phoneNumber).replace(/\D/g, '');
+  const length = cleaned.length;
+
+  if (length === 11) {
+    return `(${cleaned.substring(0, 2)}) ${cleaned.substring(2, 7)}-${cleaned.substring(7, 11)}`;
+  }
+  if (length === 10) {
+    return `(${cleaned.substring(0, 2)}) ${cleaned.substring(2, 6)}-${cleaned.substring(6, 10)}`;
+  }
+  return phoneNumber;
+};
+
 function Dashboard({ onLogout }) {
   const theme = useTheme();
 
@@ -145,7 +159,7 @@ function Dashboard({ onLogout }) {
       Cliente: p.nomecliente,
       Estado: p.estado, // Adicionado
       Email: p.email, // Adicionado
-      Telefone: p.telefone, // Adicionado
+      Telefone: formatPhoneNumber(p.telefone), // Adicionado
       Transportadora: p.transportadora, // Adicionado
       Pagamento: p.pagamento, // Adicionado
       Bandeira: p.bandeira, // Adicionado
@@ -381,7 +395,7 @@ function Dashboard({ onLogout }) {
                       <TableCell>{p.nomecliente}</TableCell>
                       <TableCell>{p.estado}</TableCell>
                       <TableCell>{p.email}</TableCell>
-                      <TableCell>{p.telefone}</TableCell>
+                      <TableCell>{formatPhoneNumber(p.telefone)}</TableCell>
                       <TableCell>{p.transportadora}</TableCell>
                       <TableCell>{p.pagamento}</TableCell>
                       <TableCell>{p.bandeira}</TableCell>

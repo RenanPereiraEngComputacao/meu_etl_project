@@ -37,17 +37,31 @@ CREATE TABLE produtos (
 );
 
 CREATE TABLE orders (
-    idpedido             INTEGER NOT NULL PRIMARY KEY,
-    numeropedido         VARCHAR(50) NOT NULL,
-    nomecliente          VARCHAR(1000) NOT NULL,
-    cpfcnpjcliente       VARCHAR(20) NOT NULL,
-    tipopedido           VARCHAR(50) NOT NULL,
-    statussincronismo    BOOLEAN NOT NULL DEFAULT FALSE,
-    observacao           VARCHAR(5000),
-    pedidosty            INTEGER,
-    statusped            VARCHAR(50),
-    liberado             BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at           TIMESTAMPTZ DEFAULT now()
+    idpedido integer NOT NULL,
+    numeropedido character varying(50) NOT NULL,
+    nomecliente character varying(1000) NOT NULL,
+    cpfcnpjcliente character varying(20) NOT NULL,
+    tipopedido character varying(50) NOT NULL,
+    statussincronismo boolean DEFAULT false NOT NULL,
+    observacao character varying(5000),
+    pedidosty integer,
+    statusped character varying(50),
+    liberado boolean DEFAULT false,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    email character varying,
+    telefone character varying,
+    estado character varying,
+    transportadora character varying,
+    pagamento character varying,
+    parcelamento character varying,
+    bandeira character varying,
+    qtdpecas character varying,
+    valorpedido money,
+    pedidobling character varying,
+    nfebling character varying,
+    nfeid character varying,
+    valornota money,
+    valorfrete money
 );
 
 CREATE TABLE order_itens (
