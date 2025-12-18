@@ -76,7 +76,7 @@ app.post("/api/login", async (req, res) => {
 // ============================================================================
 // A PARTIR DAQUI TODAS AS ROTAS USAM TENANT
 // ============================================================================
-app.use(resolveTenant);
+
 
 // ============================================================================
 // BLING – OAUTH CALLBACK
@@ -86,44 +86,40 @@ const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
 app.get("/bling/callback", async (req, res) => {
   const { code } = req.query;
-  if (!code) return res.status(400).send("Nenhum code recebido.");
+
+  if (!code) {
+    return res.status(400).send("Nenhum code foi recebido do Bling.");
+  }
 
   try {
+    const tokenUrl = "https://www.bling.com.br/Api/v3/oauth/token";
+
     const basicAuth = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
 
-    const response = await axios.post(
-      "https://www.bling.com.br/Api/v3/oauth/token",
+   const response = await axios.post(
+      tokenUrl,
       new URLSearchParams({
         grant_type: "authorization_code",
-        code,
-        redirect_uri: "http://localhost:3001/bling/callback"
+        code: code,
+        redirect_uri: "http://localhost:3001/bling/callback" // OBRIGATÓRIO
       }).toString(),
       {
         headers: {
-          Authorization: `Basic ${basicAuth}`,
-          "Content-Type": "application/x-www-form-urlencoded"
+          "Authorization": `Basic ${basicAuth}`,
+          "Content-Type": "application/x-www-form-urlencoded",
         }
       }
     );
 
-    const pool = getPostgresConnection();
 
-    await pool.query(
-      "INSERT INTO bling_tokens (access_token, refresh_token, expires_in) VALUES ($1,$2,$3)",
-      [
-        response.data.access_token,
-        response.data.refresh_token,
-        response.data.expires_in
-      ]
-    );
+    console.log("TOKEN RECEBIDO:", response.data);
 
-    res.send("Token recebido com sucesso!");
+    res.send("Token recebido com sucesso! Você já pode fechar esta janela.");
   } catch (error) {
-    console.error("Erro Bling callback:", error.response?.data || error);
+    console.error("Erro ao trocar code por token:", error.response?.data || error);
     res.status(500).send("Erro ao obter token do Bling.");
   }
 });
-
 // ============================================================================
 // BLING – TOKEN MANAGEMENT
 // ============================================================================
@@ -241,6 +237,8 @@ app.get("/bling/nfe_detalhe", async (req, res) => {
   }
 });
 
+app.use(resolveTenant);
+
 // ============================================================================
 // EXECUÇÃO DE SCRIPTS PYTHON
 // ============================================================================
@@ -269,7 +267,7 @@ app.get("/api/logs", authenticateToken, async (req, res) => {
   const params = [];
   let query = `
     SELECT id, script_name, output, created_at
-    FROM public.execution_logs
+    FROM execution_logs
   `;
 
   if (script) {
