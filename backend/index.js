@@ -6,13 +6,18 @@ const bcrypt = require("bcrypt");
 const { spawn } = require("child_process");
 const path = require("path");
 const axios = require("axios");
-const getPostgresConnection = require("./db");
+
+const {
+  getPostgresConnection,
+  getPostgresConnection2
+} = require("./db");
+
+const resolveTenant = require("./middlewares/tenant");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const pool = getPostgresConnection();
 const JWT_SECRET = process.env.JWT_SECRET || "umsegredoseguro";
 
 // ============================================================================
@@ -31,229 +36,14 @@ function authenticateToken(req, res, next) {
 }
 
 // ============================================================================
-// OAUTH BLING – CALLBACK
-// ============================================================================
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-
-app.get("/bling/callback", async (req, res) => {
-  const { code } = req.query;
-
-  if (!code) {
-    return res.status(400).send("Nenhum code foi recebido do Bling.");
-  }
-
-  try {
-    const tokenUrl = "https://www.bling.com.br/Api/v3/oauth/token";
-
-    const basicAuth = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
-
-   const response = await axios.post(
-      tokenUrl,
-      new URLSearchParams({
-        grant_type: "authorization_code",
-        code: code,
-        redirect_uri: "http://localhost:3001/bling/callback" // OBRIGATÓRIO
-      }).toString(),
-      {
-        headers: {
-          "Authorization": `Basic ${basicAuth}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        }
-      }
-    );
-
-
-    console.log("TOKEN RECEBIDO:", response.data);
-
-    res.send("Token recebido com sucesso! Você já pode fechar esta janela.");
-  } catch (error) {
-    console.error("Erro ao trocar code por token:", error.response?.data || error);
-    res.status(500).send("Erro ao obter token do Bling.");
-  }
-});
-
-
-async function getValidToken() {
-  // 1. Buscar do banco
-  const result = await pool.query(
-    "SELECT * FROM bling_tokens ORDER BY created_at DESC LIMIT 1"
-  );
-
-  const tokenData = result.rows[0];
-  if (!tokenData) throw new Error("Token não encontrado no banco.");
-
-  const criadoEm = new Date(tokenData.created_at).getTime();
-  const agora = Date.now();
-  const expirou = (agora - criadoEm) / 1000 >= tokenData.expires_in;
-
-  // 2. Se ainda estiver válido, retorna o access_token
-  if (!expirou) {
-    return tokenData.access_token;
-  }
-
-  // 3. Caso tenha expirado → chamar refresh_token
-  return await refreshBlingToken(tokenData.refresh_token);
-}
-
-
-async function refreshBlingToken(refreshToken) {
-  const basicAuth = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
-
-  const { data } = await axios.post(
-    "https://www.bling.com.br/Api/v3/oauth/token",
-    new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken
-    }).toString(),
-    {
-      headers: {
-        "Authorization": `Basic ${basicAuth}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      }
-    }
-  );
-
-  // Atualiza banco
-  await pool.query(
-    "INSERT INTO bling_tokens (access_token, refresh_token, expires_in) VALUES ($1,$2,$3)",
-    [data.access_token, data.refresh_token, data.expires_in]
-  );
-
-  return data.access_token;
-}
-
-// ============================================================================
-// FUNÇÃO CRÍTICA (FIX): BLING REQUEST
-// Agora aceita 'params' ou 'data' no terceiro argumento, dependendo do método.
-// ============================================================================
-async function blingRequest(method, endpoint, paramsOrData = null) {
-  const token = await getValidToken();
-
-  const config = {
-    method,
-    url: `https://www.bling.com.br/Api/v3${endpoint}`,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  };
-
-  // Se for GET, o terceiro argumento (paramsOrData) deve ser os Query Parameters ('params')
-  if (method.toUpperCase() === 'GET') {
-    config.params = paramsOrData;
-  } else {
-    // Para POST, PUT, etc., o terceiro argumento é o Request Body ('data')
-    config.data = paramsOrData;
-  }
-  
-  return axios(config);
-}
-
-
-app.get("/bling/pedidos/vendas", async (req, res) => {
-  try {
-    // Lendo a paginação
-    const { pagina } = req.query; 
-
-    // 1. Identifica o valor do filtro, aceitando tanto o simplificado (Python)
-    // quanto o parâmetro padrão do Bling, que o Express pode parsear como 'numerosLojas[]'.
-    const numLojasPython = req.query.numLojas;
-    const numLojasBling = req.query['numerosLojas[]'];
-    
-    // Prioriza o filtro Bling, depois o simplificado do Python
-    const filterValue = numLojasBling || numLojasPython;
-
-    // 2. Cria o objeto de parâmetros para enviar ao Bling.
-    const paramsObject = {};
-
-    if (pagina) {
-      paramsObject.pagina = pagina;
-    }
-
-    // 3. Se houver qualquer valor de filtro, traduz para o formato de array do Bling.
-    if (filterValue) {
-      // Garante que o valor (string ou array) seja tratado como array para o Bling
-      const lojasArray = Array.isArray(filterValue) ? filterValue : [filterValue];
-      
-      // A chave para o filtro Bling é 'numerosLojas[]'
-      paramsObject['numerosLojas[]'] = lojasArray;
-    }
-    
-    // 4. Passa o objeto de parâmetros para a função auxiliar.
-    // O 'paramsObject' será atribuído corretamente à propriedade 'params' dentro de blingRequest.
-    const result = await blingRequest(
-      "GET",
-      // Endpoint sem a query string, pois ela será construída pelo blingRequest
-      "/pedidos/vendas", 
-      paramsObject 
-    );
-
-    res.json(result.data);
-
-  } catch (error) {
-    console.error("Erro no /bling/pedidos/vendas:", error.response?.data || error);
-    // Verifique o corpo do erro retornado pelo Bling para diagnóstico
-    res.status(500).send("Erro ao consultar pedidos de vendas.");
-  }
-});
-
-// --- ESTE ENDPOINT ESTÁ CORRETO PARA FILTRO SIMPLES ---
-app.get("/bling/nfe", async (req, res) => {
-  try {
-    const { numeroLoja } = req.query;
-
-    if (!numeroLoja) {
-      return res.status(400).json({ message: "numeroLoja é obrigatório" });
-    }
-
-    // Para a NF-e, o parâmetro é 'numeroLoja' (sem array) e simples.
-    const paramsObject = { numeroLoja };
-
-    const result = await blingRequest(
-      "GET",
-      "/nfe", // Endpoint sem query string
-      paramsObject // Passa o objeto de params
-    );
-
-    res.json(result.data);
-
-  } catch (error) {
-    console.error("Erro no /bling/nfe:", error.response?.data || error);
-    res.status(500).send("Erro ao consultar NF-e.");
-  }
-});
-
-app.get("/bling/nfe_detalhe", async (req, res) => {
-  try {
-    const { id } = req.query; // Espera o ID da NF-e do Bling (nfe_id)
-
-    if (!id) {
-      return res.status(400).json({ message: "ID da NF-e (parametro 'id') é obrigatório" });
-    }
-
-    // O Bling permite buscar uma NF-e por ID via: /nfe/{id}
-    const result = await blingRequest(
-      "GET",
-      `/nfe/${id}` // Passa o ID diretamente na URL do endpoint
-    );
-    
-    // IMPORTANTE: Este endpoint do Bling retorna o objeto da NF-e diretamente, 
-    // não encapsulado em 'data'.
-    res.json(result.data); 
-
-  } catch (error) {
-    console.error("Erro no /bling/nfe_detalhe:", error.response?.data || error);
-    res.status(500).send("Erro ao consultar detalhes da NF-e.");
-  }
-});
-// ============================================================================
-// LOGIN
+// LOGIN (ANTES DO TENANT)
 // ============================================================================
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
+    const pool = getPostgresConnection();
+
     const result = await pool.query(
       "SELECT * FROM users WHERE username = $1",
       [username]
@@ -284,67 +74,222 @@ app.post("/api/login", async (req, res) => {
 });
 
 // ============================================================================
-// EXECUTAR SCRIPTS PYTHON
+// A PARTIR DAQUI TODAS AS ROTAS USAM TENANT
 // ============================================================================
-app.post("/api/run-script/:scriptName", authenticateToken, (req, res) => {
-  const scriptName = req.params.scriptName;
+app.use(resolveTenant);
 
-  const allowedScripts = [
-    "att_estoque.py",
-    "att_produtos.py",
-    "sync_order.py",
-    "att_clientes.py",
-    "libera_pedido.py",
-  ];
+// ============================================================================
+// BLING – OAUTH CALLBACK
+// ============================================================================
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
-  if (!allowedScripts.includes(scriptName)) {
-    return res.status(400).json({ message: "Script não permitido." });
+app.get("/bling/callback", async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.status(400).send("Nenhum code recebido.");
+
+  try {
+    const basicAuth = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
+
+    const response = await axios.post(
+      "https://www.bling.com.br/Api/v3/oauth/token",
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: "http://localhost:3001/bling/callback"
+      }).toString(),
+      {
+        headers: {
+          Authorization: `Basic ${basicAuth}`,
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      }
+    );
+
+    const pool = getPostgresConnection();
+
+    await pool.query(
+      "INSERT INTO bling_tokens (access_token, refresh_token, expires_in) VALUES ($1,$2,$3)",
+      [
+        response.data.access_token,
+        response.data.refresh_token,
+        response.data.expires_in
+      ]
+    );
+
+    res.send("Token recebido com sucesso!");
+  } catch (error) {
+    console.error("Erro Bling callback:", error.response?.data || error);
+    res.status(500).send("Erro ao obter token do Bling.");
+  }
+});
+
+// ============================================================================
+// BLING – TOKEN MANAGEMENT
+// ============================================================================
+async function getValidToken() {
+  const pool = getPostgresConnection();
+
+  const result = await pool.query(
+    "SELECT * FROM bling_tokens ORDER BY created_at DESC LIMIT 1"
+  );
+
+  const tokenData = result.rows[0];
+  if (!tokenData) throw new Error("Token não encontrado.");
+
+  const criadoEm = new Date(tokenData.created_at).getTime();
+  const expirou = (Date.now() - criadoEm) / 1000 >= tokenData.expires_in;
+
+  if (!expirou) return tokenData.access_token;
+
+  return await refreshBlingToken(tokenData.refresh_token);
+}
+
+async function refreshBlingToken(refreshToken) {
+  const basicAuth = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64");
+
+  const { data } = await axios.post(
+    "https://www.bling.com.br/Api/v3/oauth/token",
+    new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken
+    }).toString(),
+    {
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    }
+  );
+
+  const pool = getPostgresConnection();
+
+  await pool.query(
+    "INSERT INTO bling_tokens (access_token, refresh_token, expires_in) VALUES ($1,$2,$3)",
+    [data.access_token, data.refresh_token, data.expires_in]
+  );
+
+  return data.access_token;
+}
+
+// ============================================================================
+// BLING REQUEST
+// ============================================================================
+async function blingRequest(method, endpoint, paramsOrData = null) {
+  const token = await getValidToken();
+
+  const config = {
+    method,
+    url: `https://www.bling.com.br/Api/v3${endpoint}`,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    }
+  };
+
+  if (method.toUpperCase() === "GET") {
+    config.params = paramsOrData;
+  } else {
+    config.data = paramsOrData;
   }
 
-  const scriptPath = path.resolve(__dirname, "../", scriptName);
-  const processPy = spawn("python", [scriptPath]);
+  return axios(config);
+}
+
+// ============================================================================
+// BLING ENDPOINTS
+// ============================================================================
+app.get("/bling/pedidos/vendas", async (req, res) => {
+  try {
+    const params = {};
+    if (req.query.pagina) params.pagina = req.query.pagina;
+
+    const filtro = req.query["numerosLojas[]"] || req.query.numLojas;
+    if (filtro) {
+      params["numerosLojas[]"] = Array.isArray(filtro) ? filtro : [filtro];
+    }
+
+    const result = await blingRequest("GET", "/pedidos/vendas", params);
+    res.json(result.data);
+  } catch (error) {
+    console.error(error.response?.data || error);
+    res.status(500).send("Erro Bling vendas.");
+  }
+});
+
+app.get("/bling/nfe", async (req, res) => {
+  try {
+    const { numeroLoja } = req.query;
+    if (!numeroLoja) return res.status(400).json({ message: "numeroLoja obrigatório" });
+
+    const result = await blingRequest("GET", "/nfe", { numeroLoja });
+    res.json(result.data);
+  } catch (error) {
+    console.error(error.response?.data || error);
+    res.status(500).send("Erro NF-e.");
+  }
+});
+
+app.get("/bling/nfe_detalhe", async (req, res) => {
+  try {
+    if (!req.query.id) return res.status(400).json({ message: "id obrigatório" });
+    const result = await blingRequest("GET", `/nfe/${req.query.id}`);
+    res.json(result.data);
+  } catch (error) {
+    console.error(error.response?.data || error);
+    res.status(500).send("Erro detalhe NF-e.");
+  }
+});
+
+// ============================================================================
+// EXECUÇÃO DE SCRIPTS PYTHON
+// ============================================================================
+app.post("/api/run-script/:scriptName", authenticateToken, (req, res) => {
+  const org = req.headers["x-organization"];
+  const scriptPath = path.resolve(__dirname, "../", req.params.scriptName);
+
+  const processPy = spawn("python", [scriptPath, "--org", org]);
 
   let output = "";
 
-  processPy.stdout.on("data", (data) => {
-    output += data.toString("utf8");
-  });
+  processPy.stdout.on("data", d => output += d.toString());
+  processPy.stderr.on("data", d => output += d.toString());
 
-  processPy.stderr.on("data", (data) => {
-    output += "ERROR: " + data.toString("utf8");
-  });
-
-  processPy.on("close", async (code) => {
-    res.json({
-      message: "Execução finalizada.",
-      exitCode: code,
-      output,
-    });
+  processPy.on("close", code => {
+    res.json({ exitCode: code, output });
   });
 });
 
 // ============================================================================
-// LOGS
+// LOGS & LISTAGEM
 // ============================================================================
 app.get("/api/logs", authenticateToken, async (req, res) => {
-  const { script, limit } = req.query;
+  const { script, limit = 20, page = 1 } = req.query;
 
-  const queryParams = [];
-  let query = "SELECT * FROM execution_logs";
+  const params = [];
+  let query = `
+    SELECT id, script_name, output, created_at
+    FROM public.execution_logs
+  `;
 
   if (script) {
-    queryParams.push(script);
-    query += ` WHERE script_name = $${queryParams.length}`;
+    params.push(script);
+    query += ` WHERE script_name = $${params.length}`;
   }
 
-  query += " ORDER BY created_at DESC";
+  query += ` ORDER BY created_at DESC`;
 
-  const limitValue = parseInt(limit) || 20;
-  queryParams.push(limitValue);
-  query += ` LIMIT $${queryParams.length}`;
+  const limitValue = parseInt(limit);
+  const offsetValue = (parseInt(page) - 1) * limitValue;
+
+  params.push(limitValue);
+  query += ` LIMIT $${params.length}`;
+
+  params.push(offsetValue);
+  query += ` OFFSET $${params.length}`;
 
   try {
-    const result = await pool.query(query, queryParams);
+    const result = await req.db.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error("Erro ao buscar logs:", error);
@@ -352,22 +297,15 @@ app.get("/api/logs", authenticateToken, async (req, res) => {
   }
 });
 
-// ============================================================================
-// LISTAGEM DE PEDIDOS
-// ============================================================================
 app.get("/api/list", authenticateToken, async (req, res) => {
-  try {
-    const query = "SELECT * FROM public.orders ORDER BY created_at DESC";
-    const result = await pool.query(query);
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Erro ao buscar pedidos:", error);
-    res.status(500).json({ message: "Erro ao buscar pedidos." });
-  }
+  const result = await req.db.query(
+    "SELECT * FROM public.orders ORDER BY created_at DESC"
+  );
+  res.json(result.rows);
 });
 
 // ============================================================================
-// SERVIDOR
+// SERVER
 // ============================================================================
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {

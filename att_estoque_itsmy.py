@@ -7,6 +7,7 @@ from DBconect.postgres_conn import get_postgres_connection2
 from DBQueryes import mysql_queries
 from DBtratament.process_data_estoque_itsmy import process_data_estoque, insert_into_postgres_estoque
 from DBtratament.logger import registrar_log
+#org = sys.argv[sys.argv.index("--org") + 1]
 
 
 def fetch_data(query, conn):

@@ -4,13 +4,14 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 from DBconect.postgres_conn import get_postgres_connection
+from DBconect.postgres_conn import get_postgres_connection2
 import contextlib
 
 load_dotenv()
 
 print("Iniciando o script rodarautomaticamente.py...")
 
-def tem_pedidos_nao_sincronizados():
+def tem_pedidos_nao_sincronizados_malagah():
     try:
         conn = get_postgres_connection()
         with contextlib.closing(conn.cursor()) as cursor:
@@ -21,6 +22,19 @@ def tem_pedidos_nao_sincronizados():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao verificar pedidos não sincronizados: {e}")
         return False
+    
+def tem_pedidos_nao_sincronizados_itsmy():
+    try:
+        conn = get_postgres_connection2()
+        with contextlib.closing(conn.cursor()) as cursor:
+            cursor.execute("SELECT 1 FROM orders WHERE statussincronismo = false LIMIT 1")
+            resultado = cursor.fetchone()
+        conn.close()
+        return resultado is not None
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao verificar pedidos não sincronizados: {e}")
+        return False
+    
     
 def tem_pedidos_nao_liberados():
     try:
@@ -36,7 +50,7 @@ def tem_pedidos_nao_liberados():
 
 def executar_script_pedido():
     try:
-        if tem_pedidos_nao_sincronizados():
+        if tem_pedidos_nao_sincronizados_malagah():
             print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de sync_order.py")
             subprocess.run(["python", "c:/meu_etl_project/sync_order.py"], check=False)
             print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de sync_order.py\n")
@@ -45,13 +59,21 @@ def executar_script_pedido():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order.py: {e}")
 
-def executar_script():
+def executar_script_attestoquemalagah():
     try:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de att_estoque.py")
         subprocess.run(["python", "c:/meu_etl_project/att_estoque.py"], check=False)
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de att_estoque.py\n")
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar att_estoque.py: {e}")
+
+def executar_script_attestoqueitsmy():
+    try:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de att_estoque_itsmy.py")
+        subprocess.run(["python", "c:/meu_etl_project/att_estoque_itsmy.py"], check=False)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de att_estoque_itsmy.py\n")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar att_estoque_itsmy.py: {e}")
 
 def libera_pedido():
     try:
@@ -107,7 +129,8 @@ if __name__ == "__main__":
                 executado_pedido_minuto = minuto
 
             if minuto % 10 == 9 and executado_estoque_minuto != minuto:
-                executar_script()
+                executar_script_attestoquemalagah()
+                executar_script_attestoqueitsmy()
                 bling_sync_docs()
                 executado_estoque_minuto = minuto
 

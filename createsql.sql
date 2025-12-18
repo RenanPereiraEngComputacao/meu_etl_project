@@ -61,7 +61,8 @@ CREATE TABLE orders (
     nfebling character varying,
     nfeid character varying,
     valornota money,
-    valorfrete money
+    valorfrete money,
+    datapedido date
 );
 
 CREATE TABLE order_itens (

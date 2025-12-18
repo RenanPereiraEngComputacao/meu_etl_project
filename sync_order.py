@@ -15,6 +15,8 @@ import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
+#org = sys.argv[sys.argv.index("--org") + 1]
+
 def fetch_data(query, conn, params=None):
     cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cursor.execute(query, params if params else ())

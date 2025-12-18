@@ -10,6 +10,8 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 import contextlib
 
+#org = sys.argv[sys.argv.index("--org") + 1]
+
 def fetch_data(query, conn):
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query)

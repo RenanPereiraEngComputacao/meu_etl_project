@@ -1,55 +1,52 @@
-import React, { useState, useMemo } from "react";
+// src/App.js
+import React, { useState, useMemo, useEffect } from "react";
 import { 
-  createTheme, 
-  ThemeProvider, 
-  CssBaseline, // Reseta o CSS e aplica o fundo do tema
-  IconButton, 
-  Box 
+  createTheme,
+  ThemeProvider,
+  CssBaseline,
+  IconButton,
+  Box
 } from "@mui/material";
-import Brightness4Icon from '@mui/icons-material/Brightness4'; // Ícone de Lua (Escuro)
-import Brightness7Icon from '@mui/icons-material/Brightness7'; // Ícone de Sol (Claro)
+
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
+
 import LoginPage from "./components/LoginPage";
 import Dashboard from "./components/Dashboard";
+import SelectOrganizationPage from "./pages/SelectOrganizationPage";
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
   
-  // 1. Estado para gerenciar o modo de cor ('light' ou 'dark')
-  const [mode, setMode] = useState('dark'); 
+  // organização selecionada
+  const [selectedOrg, setSelectedOrg] = useState(() => localStorage.getItem("selectedOrg") || null);
 
-  // 2. Função para alternar o modo de cor
+  // tema
+  const [mode, setMode] = useState(() => localStorage.getItem("themeMode") || "dark");
+  useEffect(() => localStorage.setItem("themeMode", mode), [mode]);
+
   const colorMode = useMemo(
     () => ({
-      toggleColorMode: () => {
-        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
-      },
+      toggleColorMode: () => setMode(prev => (prev === "light" ? "dark" : "light"))
     }),
-    [],
+    []
   );
 
-  // 3. Criação dinâmica do tema
   const theme = useMemo(
     () =>
       createTheme({
         palette: {
-          mode, // 'light' ou 'dark'
-          primary: {
-            main: '#673ab7', // Roxo principal
-          },
-          secondary: {
-            main: '#9c27b0', // Roxo secundário
-          },
-          // Personalização dos fundos para o tema 'dark'
+          mode,
+          primary: { main: "#673ab7" },
+          secondary: { main: "#9c27b0" },
           background: {
-            default: mode === 'dark' ? '#121212' : '#f5f5f5', 
-            paper: mode === 'dark' ? '#1e1e1e' : '#ffffff', 
-          },
+            default: mode === "dark" ? "#121212" : "#f5f5f5",
+            paper: mode === "dark" ? "#1e1e1e" : "#ffffff"
+          }
         },
-        typography: {
-          fontFamily: 'Roboto, Arial, sans-serif',
-        },
+        typography: { fontFamily: "Roboto, Arial, sans-serif" }
       }),
-    [mode],
+    [mode]
   );
 
   const handleLogin = (newToken) => {
@@ -59,31 +56,32 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("selectedOrg");
     setToken(null);
+    setSelectedOrg(null);
+  };
+
+  const handleOrgSelect = (orgKey) => {
+    localStorage.setItem("selectedOrg", orgKey);
+    setSelectedOrg(orgKey);
   };
 
   return (
-    // 4. Envolve todo o aplicativo com ThemeProvider
     <ThemeProvider theme={theme}>
-      {/* 5. Aplica as cores de fundo e estilos base */}
-      <CssBaseline /> 
-      
-      {/* Botão de Alternância de Tema no canto superior direito */}
-      <Box sx={{ position: 'fixed', top: 16, right: 16, zIndex: 1000 }}>
+      <CssBaseline />
+      <Box sx={{ position: "fixed", top: 16, right: 16, zIndex: 1000 }}>
         <IconButton onClick={colorMode.toggleColorMode} color="inherit">
-          {mode === 'dark' ? (
-            <Brightness7Icon sx={{ color: 'white' }} /> // Sol (quando está no tema escuro)
-          ) : (
-            <Brightness4Icon /> // Lua (quando está no tema claro)
-          )}
+          {mode === "dark" ? <Brightness7Icon sx={{ color: "white" }} /> : <Brightness4Icon />}
         </IconButton>
       </Box>
 
-      {/* Roteamento Condicional */}
-      {token ? (
-        <Dashboard onLogout={handleLogout} />
-      ) : (
+      {/* Fluxo: Login -> SelectOrg -> Dashboard */}
+      {!token ? (
         <LoginPage onLogin={handleLogin} />
+      ) : !selectedOrg ? (
+        <SelectOrganizationPage onSelect={handleOrgSelect} />
+      ) : (
+        <Dashboard token={token} org={selectedOrg} onLogout={handleLogout} />
       )}
     </ThemeProvider>
   );

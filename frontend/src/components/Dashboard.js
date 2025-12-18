@@ -265,6 +265,7 @@ function Dashboard({ onLogout }) {
         <Typography variant="h4" sx={{ fontWeight: 600, mb: 4 }}>
           {scripts.find((s) => s.name === selectedScript)?.label}
         </Typography>
+        
 
         {selectedScript !== "listagempedido" ? (
           <>

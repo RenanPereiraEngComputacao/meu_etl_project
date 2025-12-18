@@ -9,6 +9,9 @@ import io
 from DBconect.postgres_conn import get_postgres_connection
 from DBtratament.logger import registrar_log
 
+
+#org = sys.argv[sys.argv.index("--org") + 1]
+
 # ================================
 # CONFIGURAÇÕES INICIAIS
 # ================================
@@ -167,6 +170,7 @@ def run_sync():
                     
                     # Se for igual, extrai os dados para atualização (usando a versão string ou float conforme necessário)
                     numero = venda.get("numero")
+                    datapedido = venda.get("data")
                     total_produtos = float(venda.get("totalProdutos", 0))
                     
 
@@ -177,8 +181,8 @@ def run_sync():
 
                 update_order_data(
                     cursor, conn, idpedido,
-                    "pedidobling = %s, valorpedido = %s",
-                    (numero, total_produtos),
+                    "pedidobling = %s, valorpedido = %s, datapedido = %s",
+                    (numero, total_produtos, datapedido),
                     f"pedidobling={numero}, valorpedido={total_produtos}"
                 )
             else:

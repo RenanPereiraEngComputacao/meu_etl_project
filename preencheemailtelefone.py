@@ -7,6 +7,8 @@ import io
 from DBconect.postgres_conn import get_postgres_connection
 from DBtratament.logger import registrar_log
 
+#org = sys.argv[sys.argv.index("--org") + 1]
+
 # ================================
 # CONFIGURAÇÕES INICIAIS
 # ================================

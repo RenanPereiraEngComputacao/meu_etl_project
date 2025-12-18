@@ -13,6 +13,8 @@ import contextlib
 import io
 import sys
 
+#org = sys.argv[sys.argv.index("--org") + 1]
+
 # =====================================
 # CONFIGURAÇÕES DO SELENIUM
 # =====================================
