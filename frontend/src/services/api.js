@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:3001/api",
+  baseURL: process.env.REACT_APP_API_URL || "http://192.168.0.77:3001/api",
   timeout: 20000,
 });
 
@@ -18,7 +18,7 @@ API.interceptors.request.use(
     }
 
     if (org) {
-      config.headers["x-organization"] = org;
+      config.headers["x-organization-id"] = org;
     }
 
     return config;

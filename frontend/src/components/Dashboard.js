@@ -42,17 +42,10 @@ import { saveAs } from "file-saver";
 
 const drawerWidth = 240;
 
-const scripts = [
-  { name: "att_estoque.py", label: "Atualizar Estoque", icon: InventoryIcon },
-  { name: "att_produtos.py", label: "Atualizar Produtos", icon: CategoryIcon },
-  { name: "att_clientes.py", label: "Atualizar Clientes", icon: PeopleIcon },
-  { name: "sync_order.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
-  { name: "libera_pedido.py", label: "Liberar Pedidos CTextil", icon: CheckCircleIcon },
-  { name: "listagempedido", label: "Listagem de Pedidos", icon: ListAltIcon },
-];
+
 
 const StatusChip = ({ status }) => {
-  const isYes =  status === "Sincronizado" || status === "Em Romaneio";
+  const isYes = status === "Sincronizado" || status === "Em Romaneio";
   return (
     <Chip
       label={status}
@@ -65,21 +58,39 @@ const StatusChip = ({ status }) => {
 };
 
 const formatPhoneNumber = (phoneNumber) => {
-  if (!phoneNumber) return '';
-  const cleaned = String(phoneNumber).replace(/\D/g, '');
-  const length = cleaned.length;
-
-  if (length === 11) {
-    return `(${cleaned.substring(0, 2)}) ${cleaned.substring(2, 7)}-${cleaned.substring(7, 11)}`;
-  }
-  if (length === 10) {
-    return `(${cleaned.substring(0, 2)}) ${cleaned.substring(2, 6)}-${cleaned.substring(6, 10)}`;
-  }
+  if (!phoneNumber) return "";
+  const cleaned = String(phoneNumber).replace(/\D/g, "");
+  if (cleaned.length === 11)
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+  if (cleaned.length === 10)
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
   return phoneNumber;
 };
 
-function Dashboard({ onLogout }) {
+function Dashboard({ org, onLogout }) {
   const theme = useTheme();
+
+  const scripts = React.useMemo(() => {
+    if (org === "itsmy") {
+      return [
+        { name: "att_estoque_itsmy.py", label: "Atualizar Estoque", icon: InventoryIcon },
+        { name: "att_produtos_itsmy.py", label: "Atualizar Produtos", icon: CategoryIcon },
+        { name: "att_clientes.py", label: "Atualizar Clientes", icon: PeopleIcon },
+        { name: "sync_order.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
+        { name: "libera_pedido.py", label: "Liberar Pedidos CTextil", icon: CheckCircleIcon },
+        { name: "listagempedido", label: "Listagem de Pedidos", icon: ListAltIcon },
+      ];
+    }
+
+    // default = malagah
+    return [
+      { name: "att_estoque.py", label: "Atualizar Estoque", icon: InventoryIcon },
+      { name: "att_produtos.py", label: "Atualizar Produtos", icon: CategoryIcon },
+      { name: "att_clientes.py", label: "Atualizar Clientes", icon: PeopleIcon },
+      { name: "sync_order.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
+      { name: "libera_pedido.py", label: "Liberar Pedidos CTextil", icon: CheckCircleIcon },
+      { name: "listagempedido", label: "Listagem de Pedidos", icon: ListAltIcon },
+    ];}, [org]);
 
   const [selectedScript, setSelectedScript] = useState(scripts[0].name);
   const [logs, setLogs] = useState([]);
@@ -94,7 +105,7 @@ function Dashboard({ onLogout }) {
       });
       setLogs(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao buscar logs", err);
     }
   }, [selectedScript]);
 
@@ -103,17 +114,19 @@ function Dashboard({ onLogout }) {
       const res = await API.get("/list", { params: { limit: 50 } });
       setPedidos(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao buscar pedidos", err);
     }
   }, []);
 
   useEffect(() => {
+    if (!org) return;
+
     if (selectedScript === "listagempedido") {
       fetchPedidos();
     } else {
       fetchLogs();
     }
-  }, [selectedScript, fetchLogs, fetchPedidos]);
+  }, [org, selectedScript, fetchLogs, fetchPedidos]);
 
   const runScript = async () => {
     setLoading(true);
@@ -121,75 +134,56 @@ function Dashboard({ onLogout }) {
       await API.post(`/run-script/${selectedScript}`);
       await fetchLogs();
     } catch (err) {
-      console.error(err);
+      console.error("Erro ao executar script", err);
     } finally {
       setLoading(false);
     }
   };
 
-  
   const pedidosFiltrados = pedidos.filter((p) => {
     const termo = filtro.toLowerCase();
     return (
-      p.numeropedido?.toLowerCase().includes(termo) ||
+      p.idpedido?.toString().includes(termo) ||
       p.nomecliente?.toLowerCase().includes(termo)
     );
   });
 
-
   const exportarXLSX = () => {
-    if (pedidosFiltrados.length === 0) {
+    if (!pedidosFiltrados.length) {
       alert("Nenhum dado para exportar.");
       return;
     }
 
     const data = pedidosFiltrados.map((p) => ({
-      // Colunas existentes na tabela
       Numero_Pedido: p.idpedido,
       Data: new Date(
-        // 1. Obtém o timestamp (milissegundos)
-        new Date(p.created_at).getTime() - 
-        // 2. Subtrai 3 horas (3 * 60m * 60s * 1000ms)
-        (3 * 60 * 60 * 1000)
-      ).toLocaleDateString("pt-BR", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
+        new Date(p.created_at).getTime() - 3 * 60 * 60 * 1000
+      ).toLocaleDateString("pt-BR"),
       Cliente: p.nomecliente,
-      Estado: p.estado, // Adicionado
-      Email: p.email, // Adicionado
-      Telefone: formatPhoneNumber(p.telefone), // Adicionado
-      Transportadora: p.transportadora, // Adicionado
-      Pagamento: p.pagamento, // Adicionado
-      Bandeira: p.bandeira, // Adicionado
-      Parcelamento: p.parcelamento, // Adicionado
-      Pecas: p.qtdpecas, // Adicionado (corrigido para 'Pecas')
-      Valor_Pedido: p.valorpedido, // Adicionado
-      Valor_nota: p.valornota, // Adicionado
-      Valor_Frete: p.valorfrete, // Adicionado
-      Pedido_Bling: p.pedidobling, // Adicionado
-      NFE_Bling: p.nfebling, // Adicionado
-
-      // NOVAS COLUNAS CALCULADAS
+      Estado: p.estado,
+      Email: p.email,
+      Telefone: formatPhoneNumber(p.telefone),
+      Transportadora: p.transportadora,
+      Pagamento: p.pagamento,
+      Bandeira: p.bandeira,
+      Parcelamento: p.parcelamento,
+      Pecas: p.qtdpecas,
+      Valor_Pedido: p.valorpedido,
+      Valor_Nota: p.valornota,
+      Valor_Frete: p.valorfrete,
       Status_Integracao: p.statussincronismo ? "Sincronizado" : "Não Sincronizado",
-      N_Pedido_Ctextil: p.pedidosty || "Falta Sincronizar", // Usando o mesmo fallback da tabela
+      Pedido_Ctextil: p.pedidosty || "Falta Sincronizar",
       Status_Ctextil: p.liberado ? "Em Romaneio" : "Restrição",
+      Pedido_Bling: p.pedidobling,
+      NFE_Bling: p.nfebling,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-
     XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos");
 
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-
-    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-
-    saveAs(blob, `listagem_pedidos_${Date.now()}.xlsx`);
+    const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([buffer]), `listagem_pedidos_${Date.now()}.xlsx`);
   };
 
   return (
@@ -205,7 +199,7 @@ function Dashboard({ onLogout }) {
         }}
       >
         <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold", mr: 8 }}>
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             Dashboard de Automação
           </Typography>
 
@@ -256,32 +250,22 @@ function Dashboard({ onLogout }) {
       </Drawer>
 
       {/* Conteúdo */}
-      <Box
-        component="main"
-        sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}
-      >
+      <Box component="main" sx={{ flexGrow: 1, bgcolor: "background.default", p: 3 }}>
         <Toolbar />
 
         <Typography variant="h4" sx={{ fontWeight: 600, mb: 4 }}>
           {scripts.find((s) => s.name === selectedScript)?.label}
         </Typography>
-        
 
         {selectedScript !== "listagempedido" ? (
           <>
-            
-
             <Box sx={{ mb: 4 }}>
               <Button
                 variant="contained"
                 onClick={runScript}
                 disabled={loading}
                 startIcon={
-                  loading ? (
-                    <CircularProgress size={20} color="inherit" />
-                  ) : (
-                    <PlayArrowIcon />
-                  )
+                  loading ? <CircularProgress size={20} color="inherit" /> : <PlayArrowIcon />
                 }
               >
                 {loading ? "Executando..." : "Executar Script Agora"}
@@ -289,7 +273,7 @@ function Dashboard({ onLogout }) {
             </Box>
 
             <Typography variant="h6" sx={{ mb: 2 }}>
-              Logs de Execução (Últimos 20)
+              Logs de Execução
             </Typography>
 
             {logs.length === 0 ? (
@@ -309,9 +293,7 @@ function Dashboard({ onLogout }) {
                       mt: 1,
                       p: 1,
                       backgroundColor:
-                        theme.palette.mode === "dark"
-                          ? "grey.800"
-                          : "grey.100",
+                        theme.palette.mode === "dark" ? "grey.800" : "grey.100",
                       borderRadius: 1,
                     }}
                   >
@@ -323,31 +305,23 @@ function Dashboard({ onLogout }) {
           </>
         ) : (
           <>
-            <Box
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,          // espaço entre eles
-                    mb: 3,
-                }}
-                >
-                <TextField
-                    label="Buscar por N° Pedido ou Cliente"
-                    variant="outlined"
-                    fullWidth      // mantém ele grande ocupando o espaço restante
-                    value={filtro}
-                    onChange={(e) => setFiltro(e.target.value)}
-                />
+            <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+              <TextField
+                label="Buscar por N° Pedido ou Cliente"
+                fullWidth
+                value={filtro}
+                onChange={(e) => setFiltro(e.target.value)}
+              />
 
-                <Button
-                    variant="contained"
-                    color="success"
-                    onClick={exportarXLSX}
-                    sx={{ whiteSpace: "nowrap" }} // evita quebrar texto do botão
-                >
-                    Exportar XLSX
-                </Button>
-                </Box>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={exportarXLSX}
+                sx={{ whiteSpace: "nowrap" }}
+              >
+                Exportar XLSX
+              </Button>
+            </Box>
 
             <TableContainer component={Paper}>
               <Table stickyHeader>
@@ -381,17 +355,8 @@ function Dashboard({ onLogout }) {
                       <TableCell>{p.idpedido}</TableCell>
                       <TableCell>
                         {new Date(
-                          // 1. Obtém o timestamp (milissegundos)
-                          new Date(p.created_at).getTime() - 
-                          // 2. Subtrai 3 horas (3 * 60m * 60s * 1000ms)
-                          (3 * 60 * 60 * 1000)
-                        )
-                          // 3. Formata a nova data
-                          .toLocaleDateString("pt-BR", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                          })}
+                          new Date(p.created_at).getTime() - 3 * 60 * 60 * 1000
+                        ).toLocaleDateString("pt-BR")}
                       </TableCell>
                       <TableCell>{p.nomecliente}</TableCell>
                       <TableCell>{p.estado}</TableCell>
@@ -407,7 +372,9 @@ function Dashboard({ onLogout }) {
                       <TableCell>{p.valorfrete}</TableCell>
                       <TableCell>
                         <StatusChip
-                          status={p.statussincronismo ? "Sincronizado" : "Não Sincronizado"}
+                          status={
+                            p.statussincronismo ? "Sincronizado" : "Não Sincronizado"
+                          }
                         />
                       </TableCell>
                       <TableCell>{p.pedidosty || "Falta Sincronizar"}</TableCell>

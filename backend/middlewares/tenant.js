@@ -4,10 +4,17 @@ const {
 } = require("../db");
 
 function resolveTenant(req, res, next) {
-  const org = req.headers["x-organization"];
+  // Login nunca exige tenant
+  if (req.path === "/login") {
+    return next();
+  }
+
+  const org = req.headers["x-organization-id"];
 
   if (!org) {
-    return res.status(400).json({ message: "Organização não informada" });
+    return res.status(400).json({
+      message: "Organização não informada"
+    });
   }
 
   switch (org) {
@@ -20,9 +27,12 @@ function resolveTenant(req, res, next) {
       break;
 
     default:
-      return res.status(400).json({ message: "Organização inválida" });
+      return res.status(400).json({
+        message: "Organização inválida"
+      });
   }
 
+  req.organization = org;
   next();
 }
 

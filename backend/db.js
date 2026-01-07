@@ -25,7 +25,7 @@ const pool2 = createPool({
   port: process.env.PG_PORT,
   user: process.env.PG_USER,
   password: process.env.PG_PASSWORD,
-  database: process.env.PG_DATABASE_2,
+  database: process.env.PG_DATABASE2,
 });
 
 // Exporta um objeto com as opções
