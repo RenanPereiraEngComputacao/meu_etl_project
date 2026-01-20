@@ -1,0 +1,66 @@
+Instalação do programa em interface Windows.
+
+1º passo: instalação do node:
+
+mkdir C:\Temp -Force
+cd C:\Temp
+
+Invoke-WebRequest https://nodejs.org/dist/v20.11.1/node-v20.11.1-x64.msi -OutFile node.msi
+
+msiexec /i node.msi /qn
+
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
+node -v
+npm -v
+
+
+2º passo: instalar o phyton:
+
+Invoke-WebRequest https://www.python.org/ftp/python/3.12.1/python-3.12.1-amd64.exe -OutFile python.exe
+
+.\python.exe /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
+
+[System.Environment]::SetEnvironmentVariable(
+  "Path",
+  [System.Environment]::GetEnvironmentVariable("Path","Machine") +
+  ";C:\Program Files\Python312;C:\Program Files\Python312\Scripts",
+  "Machine"
+)
+
+python --version
+pip --version
+
+mkdir C:\apps\meu_etl_project
+cd C:\apps\meu_etl_project
+python -m venv venv
+venv\Scripts\activate
+
+3º passo: instalar postgress:
+
+Invoke-WebRequest https://get.enterprisedb.com/postgresql/postgresql-16.1-1-windows-x64.exe -OutFile postgres.exe
+
+.\postgres.exe --mode unattended `
+ --superpassword "SenhaForteAqui" ` -- Alterar a senha
+ --servicename "postgresql-x64-16" `
+ --serviceaccount "NT AUTHORITY\NetworkService" `
+ --datadir "C:\PostgreSQL\data" `
+ --prefix "C:\PostgreSQL"
+
+
+setx PATH "$([System.Environment]::GetEnvironmentVariable('Path','Machine'));C:\PostgreSQL\bin" /M
+
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
+psql --version
+
+4º passo: instalar o git:
+
+Invoke-WebRequest https://github.com/git-for-windows/git/releases/download/v2.44.0.windows.1/Git-2.44.0-64-bit.exe -OutFile git.exe
+
+.\git.exe /VERYSILENT /NORESTART
+
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
+git --version
+
