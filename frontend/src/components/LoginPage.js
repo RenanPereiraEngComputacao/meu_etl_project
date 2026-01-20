@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import {
+  Box,
   Container,
+  Paper,
+  Typography,
   TextField,
   Button,
-  Typography,
-  Box,
-  useTheme,
   CircularProgress,
+  InputAdornment,
+  Divider,
 } from "@mui/material";
-
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import API from "../services/api";
 
 function LoginPage({ onLogin }) {
@@ -16,8 +19,6 @@ function LoginPage({ onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const theme = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,21 +31,11 @@ function LoginPage({ onLogin }) {
         password,
       });
 
-      console.log("LOGIN RESPONSE:", res.data);
-
-      if (res.status === 200 && res.data?.token) {
-        onLogin(res.data.token);
-      } else {
-        setError("Resposta inválida do servidor.");
-      }
+      if (res.status === 200 && res.data?.token) onLogin(res.data.token);
+      else setError("Resposta inválida do servidor.");
     } catch (err) {
-      console.error("ERRO LOGIN:", err);
-
-      if (err.response) {
-        setError(err.response.data?.message || "Usuário ou senha inválidos.");
-      } else {
-        setError("Servidor não respondeu.");
-      }
+      if (err.response) setError(err.response.data?.message || "Usuário ou senha inválidos.");
+      else setError("Servidor não respondeu.");
     } finally {
       setLoading(false);
     }
@@ -54,44 +45,43 @@ function LoginPage({ onLogin }) {
     <Box
       sx={{
         minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
+        display: "grid",
+        placeItems: "center",
+        px: 2,
         background:
-          theme.palette.mode === "dark"
-            ? `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, #000000 100%)`
-            : `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.secondary.main} 100%)`,
-        padding: 2,
+          "radial-gradient(1200px 600px at 10% 10%, rgba(123,92,255,.35), transparent 60%)," +
+          "radial-gradient(900px 500px at 90% 20%, rgba(111,121,255,.30), transparent 55%)," +
+          "radial-gradient(900px 600px at 50% 100%, rgba(0,200,255,.18), transparent 55%)," +
+          "linear-gradient(180deg, #0b1020 0%, #090b12 100%)",
       }}
     >
-      <Typography variant="h5" color="white" mb={4}>
-        Bem-vindo ao Sistema ETL
-      </Typography>
-
       <Container maxWidth="xs">
-        <Box
-          p={4}
+        <Paper
+          elevation={0}
           sx={{
-            borderRadius: "16px",
-            bgcolor: theme.palette.background.paper,
-            boxShadow: theme.shadows[10],
-            background:
-              theme.palette.mode === "dark"
-                ? `linear-gradient(45deg, ${theme.palette.background.paper}, ${theme.palette.grey[900]})`
-                : `linear-gradient(45deg, ${theme.palette.background.paper}, ${theme.palette.grey[50]})`,
+            p: 4,
+            borderRadius: 4,
+            border: "1px solid rgba(255,255,255,.10)",
+            backgroundColor: "rgba(255,255,255,.06)",
+            backdropFilter: "blur(14px)",
+            boxShadow: "0 20px 70px rgba(0,0,0,.45)",
           }}
         >
-          <Typography
-            variant="h5"
-            align="center"
-            gutterBottom
-            sx={{ fontWeight: "bold" }}
-          >
+          <Typography variant="overline" sx={{ color: "rgba(255,255,255,.7)" }}>
+            Sistema ETL
+          </Typography>
+
+          <Typography variant="h5" sx={{ color: "white", mt: 0.5 }}>
             Stylezee Confecções
           </Typography>
 
-          <form onSubmit={handleSubmit}>
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,.7)", mt: 1 }}>
+            Entre para executar sincronizações e acompanhar logs.
+          </Typography>
+
+          <Divider sx={{ my: 3, borderColor: "rgba(255,255,255,.10)" }} />
+
+          <Box component="form" onSubmit={handleSubmit}>
             <TextField
               label="Usuário"
               fullWidth
@@ -99,8 +89,20 @@ function LoginPage({ onLogin }) {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               InputProps={{
-                startAdornment: <Box mr={1}>👤</Box>,
-                sx: { borderRadius: "12px" },
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonOutlineIcon sx={{ color: "rgba(255,255,255,.75)" }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiInputLabel-root": { color: "rgba(255,255,255,.7)" },
+                "& .MuiOutlinedInput-root": {
+                  color: "white",
+                  backgroundColor: "rgba(0,0,0,.18)",
+                  "& fieldset": { borderColor: "rgba(255,255,255,.18)" },
+                  "&:hover fieldset": { borderColor: "rgba(255,255,255,.28)" },
+                },
               }}
             />
 
@@ -112,43 +114,47 @@ function LoginPage({ onLogin }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               InputProps={{
-                startAdornment: <Box mr={1}>🔒</Box>,
-                sx: { borderRadius: "12px" },
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockOutlinedIcon sx={{ color: "rgba(255,255,255,.75)" }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiInputLabel-root": { color: "rgba(255,255,255,.7)" },
+                "& .MuiOutlinedInput-root": {
+                  color: "white",
+                  backgroundColor: "rgba(0,0,0,.18)",
+                  "& fieldset": { borderColor: "rgba(255,255,255,.18)" },
+                  "&:hover fieldset": { borderColor: "rgba(255,255,255,.28)" },
+                },
               }}
             />
 
             {error && (
-              <Typography
-                color="error"
-                variant="body2"
-                mt={2}
-                align="center"
-              >
+              <Typography sx={{ mt: 2, color: "#ff6b6b" }} variant="body2">
                 {error}
               </Typography>
             )}
 
-            <Box mt={3}>
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                disabled={loading}
-                sx={{
-                  borderRadius: "12px",
-                  py: 1.5,
-                  fontWeight: "bold",
-                }}
-              >
-                {loading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Entrar"
-                )}
-              </Button>
-            </Box>
-          </form>
-        </Box>
+            <Button
+              type="submit"
+              fullWidth
+              disabled={loading}
+              sx={{
+                mt: 3,
+                borderRadius: 2,
+                py: 1.4,
+                color: "white",
+                background: "linear-gradient(135deg, #7b5cff 0%, #6f79ff 55%, #00c8ff 120%)",
+                boxShadow: "0 14px 35px rgba(123,92,255,.35)",
+                "&:hover": { filter: "brightness(1.05)" },
+              }}
+            >
+              {loading ? <CircularProgress size={22} color="inherit" /> : "Entrar"}
+            </Button>
+          </Box>
+        </Paper>
       </Container>
     </Box>
   );
