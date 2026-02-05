@@ -64,7 +64,7 @@ def montar_json_pedido(pedido, itens):
 
         return {
             "async": True,
-            "type": "1MTIx1",
+            "type": "1MTQ15",
             "customer": CNPJ_ITSMY,
             "seller": CNPJ_STYLEZEE,
             "bank": "001",

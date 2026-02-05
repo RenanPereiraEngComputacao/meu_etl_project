@@ -79,9 +79,7 @@ function Dashboard({ org, onLogout }) {
       return [
         { name: "att_estoque_itsmy.py", label: "Atualizar Estoque", icon: InventoryIcon },
         { name: "att_produtos_itsmy.py", label: "Atualizar Produtos", icon: CategoryIcon },
-        { name: "att_clientes.py", label: "Atualizar Clientes", icon: PeopleIcon },
-        { name: "sync_order.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
-        { name: "libera_pedido.py", label: "Liberar Pedidos CTextil", icon: CheckCircleIcon },
+        { name: "sync_order_secundaria.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
         { name: "listagempedido", label: "Listagem de Pedidos", icon: ListAltIcon },
       ];
     }
@@ -90,9 +88,8 @@ function Dashboard({ org, onLogout }) {
     return [
       { name: "att_estoque.py", label: "Atualizar Estoque", icon: InventoryIcon },
       { name: "att_produtos.py", label: "Atualizar Produtos", icon: CategoryIcon },
-      { name: "att_clientes.py", label: "Atualizar Clientes", icon: PeopleIcon },
+      //{ name: "att_clientes.py", label: "Atualizar Clientes", icon: PeopleIcon },
       { name: "sync_order.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
-      { name: "libera_pedido.py", label: "Liberar Pedidos CTextil", icon: CheckCircleIcon },
       { name: "listagempedido", label: "Listagem de Pedidos", icon: ListAltIcon },
     ];
   }, [org]);
@@ -204,7 +201,6 @@ function Dashboard({ org, onLogout }) {
       Valor_Frete: p.valorfrete,
       Status_Integracao: p.statusIntegracao,
       Pedido_Ctextil: p.pedidoCtextil,
-      Status_Ctextil: p.statusCtextil,
       Pedido_Bling: p.pedidobling,
       NFE_Bling: p.nfebling,
     }));
@@ -245,13 +241,6 @@ function Dashboard({ org, onLogout }) {
         headerName: "N° Pedido Ctextil",
         minWidth: 170,
         flex: 0.7,
-      },
-      {
-        field: "statusCtextil",
-        headerName: "Status Ctextil",
-        minWidth: 160,
-        flex: 0.7,
-        renderCell: (params) => <StatusChip status={params.value} />,
       },
       { field: "pedidobling", headerName: "Pedido Bling", minWidth: 135, flex: 0.6 },
       { field: "nfebling", headerName: "NFE Bling", minWidth: 120, flex: 0.55 },

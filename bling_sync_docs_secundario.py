@@ -6,8 +6,8 @@ import sys
 import io
 
 # Imports customizados (assumindo que estas funções existem):
-from DBconect.postgres_conn import get_postgres_connection
-from DBtratament.logger import registrar_log
+from DBconect.postgres_conn import get_postgres_connection2
+from DBtratament.logger_itsmy import registrar_log
 
 
 #org = sys.argv[sys.argv.index("--org") + 1]
@@ -19,11 +19,11 @@ load_dotenv()
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 API_BASE = os.getenv("LOCAL_API_URL")
-PEDIDOS_URL = f"{API_BASE}/bling1/pedidos/vendas"
-NFE_URL = f"{API_BASE}/bling1/nfe"
-NFE_URL_DETALHE = f"{API_BASE}/bling1/nfe_detalhe"
+PEDIDOS_URL = f"{API_BASE}/bling2/pedidos/vendas"
+NFE_URL = f"{API_BASE}/bling2/nfe"
+NFE_URL_DETALHE = f"{API_BASE}/bling2/nfe_detalhe"
 
-SCRIPT_NAME = "bling_sync_docs.py"
+SCRIPT_NAME = "bling_sync_docs_secundario.py"
 
 print("programa iniciado")
 
@@ -102,7 +102,7 @@ def run_sync():
 
     # Conexão com o banco
     try:
-        conn = get_postgres_connection()
+        conn = get_postgres_connection2()
     except Exception as e:
         registrar_log(SCRIPT_NAME, f"Erro ao conectar Postgres: {e}")
         return

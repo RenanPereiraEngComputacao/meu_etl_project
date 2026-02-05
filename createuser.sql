@@ -31,3 +31,4 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE order_itens TO convertr;
 REVOKE DELETE ON TABLE orders FROM convertr;
 REVOKE DELETE ON TABLE order_itens FROM convertr;
 
+GRANT USAGE, SELECT, UPDATE ON SEQUENCE public.order_itens_iditempedido_seq TO convertr;

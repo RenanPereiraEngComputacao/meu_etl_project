@@ -2,10 +2,10 @@ import requests
 import psycopg2.extras
 from dotenv import load_dotenv
 import os
-from DBconect.postgres_conn import get_postgres_connection
+from DBconect.postgres_conn import get_postgres_connection2
 from DBQueryes import postgres_queries
-from DBtratament.process_data_order import montar_json_pedido, atualizar_barcodes_faltantes
-from DBtratament.logger import registrar_log
+from DBtratament.process_data_order_itsmy import montar_json_pedido, atualizar_barcodes_faltantes
+from DBtratament.logger_itsmy import registrar_log
 
 import contextlib   
 
@@ -26,7 +26,7 @@ def fetch_data(query, conn, params=None):
 
 def main():
     try:
-        conn = get_postgres_connection()
+        conn = get_postgres_connection2()
         pedidos = fetch_data(postgres_queries.get_pedidos_nao_sincronizados(), conn)
 
         if not pedidos:
@@ -74,7 +74,7 @@ def main():
                         params={
                             "page": 1,
                             "full_return": "true",
-                            "customer": 47070914000192,  # ou fixe se for sempre o mesmo
+                            "customer": 62668846000151,  # ou fixe se for sempre o mesmo
                             "presence_indicator": 0
                         },
                         headers={"Authorization": f"Bearer {os.getenv('ERP_API_TOKEN')}"}
@@ -117,7 +117,8 @@ def main():
 
 if __name__ == "__main__":
     buffer = io.StringIO()
+    #main()
     with contextlib.redirect_stdout(buffer):
         main()
 
-    registrar_log("sync_order.py", buffer.getvalue())
+    registrar_log("sync_order_secundaria.py", buffer.getvalue())

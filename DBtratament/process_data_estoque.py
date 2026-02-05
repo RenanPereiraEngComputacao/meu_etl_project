@@ -95,24 +95,6 @@ def process_data_estoque(
         # Armazenamentos conhecidos para este SKU; se não houver, cria uma linha "genérica"
         armazenamentos = armazenamentos_por_sku.get((seqrefer, seqcor, seqtamanho))
         if not armazenamentos or len(armazenamentos) == 0:
-            seqgruarm = 0  # "genérico" quando não há estoque/reserva em lugar nenhum
-            estqtde = 0.0
-            resqtde = 0.0
-            disponivel = 0.0
-
-            resultado_final.append((
-                indexado,
-                indexadocorescrito,
-                refcodigo,
-                variacao,
-                barcode,
-                precob2c,
-                precob2b,
-                seqgruarm,
-                estqtde,
-                resqtde,
-                disponivel
-            ))
             continue
 
         # Para cada armazenamento existente, gera a linha
