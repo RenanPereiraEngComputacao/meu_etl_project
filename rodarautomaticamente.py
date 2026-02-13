@@ -102,7 +102,13 @@ def bling_sync_docs():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar bling_sync_docs.py: {e}")
 
-
+def executar_script_atualizar_invoices():
+    try:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de sync_order_invoices.py")
+        subprocess.run(["python", "c:/meu_etl_project/sync_order_invoices.py"], check=False)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de sync_order_invoices.py\n")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order_invoices.py: {e}")
 
 
 executado_pedido_minuto = None
@@ -132,6 +138,7 @@ if __name__ == "__main__":
                 executar_script_attestoquemalagah()
                 executar_script_attestoqueitsmy()
                 bling_sync_docs()
+                executar_script_atualizar_invoices()
                 executado_estoque_minuto = minuto
 
             print(f"[{agora.strftime('%H:%M:%S')}] Aguardando próximo ciclo...")

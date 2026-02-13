@@ -175,6 +175,8 @@ function Dashboard({ org, onLogout }) {
       statusIntegracao: p.statussincronismo ? "Sincronizado" : "Não Sincronizado",
       statusCtextil: p.liberado ? "Em Romaneio" : "Restrição",
       pedidoCtextil: p.pedidosty || "Falta Sincronizar",
+      data_bling: formatDateBR(p.data_nota_bling),
+      datapedido: formatDateBR(p.datapedido),
     }));
   }, [pedidosFiltrados]);
 
@@ -187,6 +189,7 @@ function Dashboard({ org, onLogout }) {
     const data = rows.map((p) => ({
       Numero_Pedido: p.idpedido,
       Data: p.dataBR,
+      Status_Integracao: p.statusIntegracao,
       Cliente: p.nomecliente,
       Estado: p.estado,
       Email: p.email,
@@ -199,10 +202,13 @@ function Dashboard({ org, onLogout }) {
       Valor_Pedido: p.valorpedido,
       Valor_Nota: p.valornota,
       Valor_Frete: p.valorfrete,
-      Status_Integracao: p.statusIntegracao,
-      Pedido_Ctextil: p.pedidoCtextil,
       Pedido_Bling: p.pedidobling,
+      Data_pedido: p.datapedido,
       NFE_Bling: p.nfebling,
+      data_bling: p.data_bling,
+      Pedido_Ctextil: p.pedidoCtextil,
+      NFE_Ctextil: p.numeronota_ctextil,
+      Data_Ctextil: p.emissao_nota_ctextil,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -214,39 +220,43 @@ function Dashboard({ org, onLogout }) {
   };
 
   const columns = useMemo(
-    () => [
-      { field: "idpedido", headerName: "Número Pedido", minWidth: 140, flex: 0.6 },
-      { field: "dataBR", headerName: "Data", minWidth: 110, flex: 0.45 },
-      { field: "nomecliente", headerName: "Cliente", minWidth: 220, flex: 1.2 },
-      { field: "estado", headerName: "Estado", minWidth: 90, flex: 0.35 },
-      { field: "email", headerName: "Email", minWidth: 230, flex: 1.2 },
-      { field: "telefoneBR", headerName: "Telefone", minWidth: 140, flex: 0.6 },
-      { field: "transportadora", headerName: "Transportadora", minWidth: 160, flex: 0.7 },
-      { field: "pagamento", headerName: "Pagamento", minWidth: 150, flex: 0.7 },
-      { field: "bandeira", headerName: "Bandeira", minWidth: 120, flex: 0.55 },
-      { field: "parcelamento", headerName: "Parcelamento", minWidth: 140, flex: 0.65 },
-      { field: "qtdpecas", headerName: "Peças", minWidth: 90, flex: 0.35, type: "number" },
-      { field: "valorpedido", headerName: "Valor Pedido", minWidth: 130, flex: 0.55 },
-      { field: "valornota", headerName: "Valor Nota", minWidth: 120, flex: 0.55 },
-      { field: "valorfrete", headerName: "Valor Frete", minWidth: 120, flex: 0.55 },
-      {
-        field: "statusIntegracao",
-        headerName: "Status Integração",
-        minWidth: 175,
-        flex: 0.75,
-        renderCell: (params) => <StatusChip status={params.value} />,
-      },
-      {
-        field: "pedidoCtextil",
-        headerName: "N° Pedido Ctextil",
-        minWidth: 170,
-        flex: 0.7,
-      },
-      { field: "pedidobling", headerName: "Pedido Bling", minWidth: 135, flex: 0.6 },
-      { field: "nfebling", headerName: "NFE Bling", minWidth: 120, flex: 0.55 },
-    ],
-    []
-  );
+  () => [
+    { field: "idpedido", headerName: "Numero Pedido", minWidth: 140, flex: 0.6 },
+    { field: "dataBR", headerName: "Data", minWidth: 110, flex: 0.45 },
+
+    {
+      field: "statusIntegracao",
+      headerName: "Status Integracao",
+      minWidth: 175,
+      flex: 0.75,
+      renderCell: (params) => <StatusChip status={params.value} />,
+    },
+
+    { field: "nomecliente", headerName: "Cliente", minWidth: 220, flex: 1.2 },
+    { field: "estado", headerName: "Estado", minWidth: 90, flex: 0.35 },
+    { field: "email", headerName: "Email", minWidth: 230, flex: 1.2 },
+    { field: "telefoneBR", headerName: "Telefone", minWidth: 140, flex: 0.6 },
+    { field: "transportadora", headerName: "Transportadora", minWidth: 140, flex: 0.7 },
+    { field: "pagamento", headerName: "Pagamento", minWidth: 150, flex: 0.7 },
+    { field: "bandeira", headerName: "Bandeira", minWidth: 110, flex: 0.55 },
+    { field: "parcelamento", headerName: "Parcelamento", minWidth: 130, flex: 0.65 },
+
+    { field: "qtdpecas", headerName: "Peças", minWidth: 70, flex: 0.55, type: "number" },
+    { field: "valorpedido", headerName: "Valor Pedido", minWidth: 115, flex: 0.55 },
+    { field: "valornota", headerName: "Valor Nota", minWidth: 110, flex: 0.55 },
+    { field: "valorfrete", headerName: "Valor Frete", minWidth: 110, flex: 0.55 },
+
+    { field: "pedidobling", headerName: "Pedido Bling", minWidth: 120, flex: 0.6 },
+    { field: "datapedido", headerName: "Data pedido", minWidth: 130, flex: 0.55 },
+    { field: "nfebling", headerName: "NFE Bling", minWidth: 95, flex: 0.55 },
+    { field: "data_bling", headerName: "Data Nota Bling", minWidth: 140, flex: 0.55 },
+
+    { field: "pedidoCtextil", headerName: "Pedido Ctextil", minWidth: 150, flex: 0.6 },
+    { field: "numeronota_ctextil", headerName: "NFE Ctextil", minWidth: 140, flex: 0.55 },
+    { field: "emissao_nota_ctextil", headerName: "Data Ctextil", minWidth: 140, flex: 0.55 },
+  ],
+  []
+);
 
   const selectedLabel = scripts.find((s) => s.name === selectedScript)?.label ?? "Dashboard";
 

@@ -207,6 +207,7 @@ def run_sync():
                 
                 nfe_objeto = data["data"][0] 
                 numero_nfe = nfe_objeto.get("numero")
+                datanfe = nfe_objeto.get("dataEmissao")
                 idnfe = nfe_objeto.get("id")
                 
                 print (f"O id da nota é: {idnfe}")   
@@ -222,9 +223,9 @@ def run_sync():
                 if numero_nfe:
                     update_order_data(
                         cursor, conn, idpedido,
-                        "nfebling = %s, estado = %s, nfeid = %s",
-                        (numero_nfe, uf, idnfe),
-                        f"nfebling={numero_nfe}, estado={uf}"
+                        "nfebling = %s, estado = %s, nfeid = %s, data_nota_bling = %s",
+                        (numero_nfe, uf, idnfe, datanfe),
+                        f"nfebling={numero_nfe}, estado={uf} , datanfe={datanfe}"
                     )
                 else:
                     registrar_log(SCRIPT_NAME, f" → NF-e encontrada, mas sem 'numero' para {idpedido}")
