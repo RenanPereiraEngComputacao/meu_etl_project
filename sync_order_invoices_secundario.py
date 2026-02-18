@@ -6,8 +6,8 @@ import sys
 import io
 import contextlib
 
-from DBconect.postgres_conn import get_postgres_connection
-from DBtratament.logger import registrar_log
+from DBconect.postgres_conn import get_postgres_connection2
+from DBtratament.logger_itsmy import registrar_log
 
 # ================================
 # CONFIG INICIAL
@@ -59,7 +59,7 @@ def consultar_invoices(order_id_erp, page=1):
 # ================================
 def main():
     try:
-        conn = get_postgres_connection()
+        conn = get_postgres_connection2()
 
         # ⚠️ Ajuste o WHERE se quiser filtrar melhor
         pedidos = fetch_data("""

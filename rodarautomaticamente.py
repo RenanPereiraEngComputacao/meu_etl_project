@@ -102,6 +102,14 @@ def bling_sync_docs():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar bling_sync_docs.py: {e}")
 
+def bling_sync_docs_secundario():
+    try:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução do bling_sync_docs_secundario.py")
+        subprocess.run(["python", "c:/meu_etl_project/bling_sync_docs_secundario.py"], check=False)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução do bling_sync_docs_secundario.py\n")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar bling_sync_docs_secundario.py: {e}")
+
 def executar_script_atualizar_invoices():
     try:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de sync_order_invoices.py")
@@ -109,6 +117,14 @@ def executar_script_atualizar_invoices():
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de sync_order_invoices.py\n")
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order_invoices.py: {e}")
+
+def executar_script_atualizar_invoices_secundario():
+    try:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de sync_order_invoices_secundario.py")
+        subprocess.run(["python", "c:/meu_etl_project/sync_order_invoices_secundario.py"], check=False)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de sync_order_invoices_secundario.py\n")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order_invoices_secundario.py: {e}")
 
 
 executado_pedido_minuto = None
@@ -123,22 +139,23 @@ if __name__ == "__main__":
             if minuto % 10 == 0 and executado_pedido_minuto != minuto:
                 executar_script_pedido()
                 time.sleep(2)  
-                #libera_pedido()
                 preenche_email_telefone()
+                bling_sync_docs()
+                bling_sync_docs_secundario()
+                executar_script_atualizar_invoices()
+                executar_script_atualizar_invoices_secundario()
                 executado_pedido_minuto = minuto
 
             if minuto % 10 == 5 and executado_pedido_minuto != minuto:
                 executar_script_pedido()
                 time.sleep(2)  
-                #libera_pedido()
                 preenche_email_telefone()
                 executado_pedido_minuto = minuto
 
             if minuto % 10 == 9 and executado_estoque_minuto != minuto:
                 executar_script_attestoquemalagah()
                 executar_script_attestoqueitsmy()
-                bling_sync_docs()
-                executar_script_atualizar_invoices()
+                
                 executado_estoque_minuto = minuto
 
             print(f"[{agora.strftime('%H:%M:%S')}] Aguardando próximo ciclo...")

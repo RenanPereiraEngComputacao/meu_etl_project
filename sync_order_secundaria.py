@@ -45,7 +45,7 @@ def main():
             json_payload = montar_json_pedido(pedido, itens)
 
             response = requests.post(
-                url=os.getenv("ERP_API_URL"),
+                url=os.getenv("ERP_API_URL"), # type: ignore
                 json=json_payload,
                 headers={"Authorization": f"Bearer {os.getenv('ERP_API_TOKEN')}"}
             )
@@ -54,8 +54,10 @@ def main():
                 resposta = response.json()
 
                 numero_erp = None
+                idpedido_erp = None
                 try:
                     numero_erp = int(resposta["data"][0]["number"])
+                    idpedido_erp = resposta["data"][0]["id"]    
                 except (KeyError, IndexError, TypeError, ValueError):
                     print(f"Atenção: não foi possível extrair o número ERP do pedido {pedido['numeropedido']}")
 
@@ -86,14 +88,16 @@ def main():
                         for ped in dados:
                             note = ped.get("note", "")
                             if f"PED-{pedido['numeropedido']}" in note:
+                                idpedido_erp = ped.get("id")
                                 numero_erp = ped.get("number")
+                                
                                 with conn.cursor() as cursor:
                                     cursor.execute(
-                                        "UPDATE orders SET statussincronismo = TRUE, statusped = 'Pedido Recebido', pedidosty = %s WHERE idpedido = %s;",
-                                        (numero_erp, pedido["idpedido"])
+                                        "UPDATE orders SET statussincronismo = TRUE, statusped = 'Pedido Recebido', pedidosty = %s, idpedido_erp = %s WHERE idpedido = %s;",
+                                        (numero_erp, idpedido_erp, pedido["idpedido"])
                                     )
                                 conn.commit()
-                                print(f"Pedido {pedido['numeropedido']} confirmado via consulta. Número ERP: {numero_erp}")
+                                print(f"Pedido {pedido['numeropedido']} confirmado via consulta. Número ERP: {numero_erp}, idpedido ERP: {idpedido_erp}")
                                 encontrado = True
                                 break
 
@@ -109,7 +113,7 @@ def main():
         print(f"Erro durante sincronização: {e}")
     finally:
         try:
-            conn.close()
+            conn.close() # type: ignore
         except:
             pass
         print("Conexão encerrada.")
@@ -117,7 +121,6 @@ def main():
 
 if __name__ == "__main__":
     buffer = io.StringIO()
-    #main()
     with contextlib.redirect_stdout(buffer):
         main()
 

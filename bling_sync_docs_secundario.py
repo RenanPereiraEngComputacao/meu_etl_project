@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 import sys
 import io
-
+import contextlib   
 # Imports customizados (assumindo que estas funções existem):
 from DBconect.postgres_conn import get_postgres_connection2
 from DBtratament.logger_itsmy import registrar_log
@@ -207,6 +207,7 @@ def run_sync():
                 
                 nfe_objeto = data["data"][0] 
                 numero_nfe = nfe_objeto.get("numero")
+                datanfe = nfe_objeto.get("dataEmissao")
                 idnfe = nfe_objeto.get("id")
                 
                 print (f"O id da nota é: {idnfe}")   
@@ -222,9 +223,9 @@ def run_sync():
                 if numero_nfe:
                     update_order_data(
                         cursor, conn, idpedido,
-                        "nfebling = %s, estado = %s, nfeid = %s",
-                        (numero_nfe, uf, idnfe),
-                        f"nfebling={numero_nfe}, estado={uf}"
+                        "nfebling = %s, estado = %s, nfeid = %s,data_nota_bling = %s",
+                        (numero_nfe, uf, idnfe, datanfe),
+                        f"nfebling={numero_nfe}, estado={uf} , datanfe={datanfe}"
                     )
                 else:
                     registrar_log(SCRIPT_NAME, f" → NF-e encontrada, mas sem 'numero' para {idpedido}")
@@ -272,7 +273,7 @@ def run_sync():
             # Verificamos se 'data' não é nulo e o usamos como o objeto de detalhe.
             if data and isinstance(data, dict) and "data" in data:
                 nfe_detalhe = data.get("data")# 'data' é o objeto completo (o 'result' do seu backend)
-                itens = nfe_detalhe.get("itens")
+                itens = nfe_detalhe.get("itens") # type: ignore
                 if itens is not None and isinstance(itens, list):
                     # 4. Conta o número de itens
                     quantidade_itens = len(itens)
@@ -285,7 +286,7 @@ def run_sync():
                     update_order_data(
                         cursor, conn, idpedido,
                         "valornota = %s, valorfrete = %s, qtdpecas = %s",
-                        (valornota_api, valorfrete_api, quantidade_itens),
+                        (valornota_api, valorfrete_api, quantidade_itens), # type: ignore
                         f"valornota={valornota_api}, valorfrete={valorfrete_api}"
                     )
                 else:
@@ -314,4 +315,8 @@ def run_sync():
 # EXECUÇÃO DIRETA
 # =============================
 if __name__ == "__main__":
-    run_sync()
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        run_sync()
+
+    registrar_log("bling_sync_docs_secundario.py", buffer.getvalue())

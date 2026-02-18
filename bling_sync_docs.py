@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 import sys
 import io
-
+import contextlib   
 # Imports customizados (assumindo que estas funções existem):
 from DBconect.postgres_conn import get_postgres_connection
 from DBtratament.logger import registrar_log
@@ -273,7 +273,7 @@ def run_sync():
             # Verificamos se 'data' não é nulo e o usamos como o objeto de detalhe.
             if data and isinstance(data, dict) and "data" in data:
                 nfe_detalhe = data.get("data")# 'data' é o objeto completo (o 'result' do seu backend)
-                itens = nfe_detalhe.get("itens")
+                itens = nfe_detalhe.get("itens") # type: ignore
                 if itens is not None and isinstance(itens, list):
                     # 4. Conta o número de itens
                     quantidade_itens = len(itens)
@@ -286,7 +286,7 @@ def run_sync():
                     update_order_data(
                         cursor, conn, idpedido,
                         "valornota = %s, valorfrete = %s, qtdpecas = %s",
-                        (valornota_api, valorfrete_api, quantidade_itens),
+                        (valornota_api, valorfrete_api, quantidade_itens), # type: ignore
                         f"valornota={valornota_api}, valorfrete={valorfrete_api}"
                     )
                 else:
@@ -315,4 +315,8 @@ def run_sync():
 # EXECUÇÃO DIRETA
 # =============================
 if __name__ == "__main__":
-    run_sync()
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        run_sync()
+
+    registrar_log("bling_sync_docs.py", buffer.getvalue())

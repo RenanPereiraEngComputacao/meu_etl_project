@@ -69,10 +69,22 @@ const formatPhoneNumber = (phoneNumber) => {
 
 const formatDateBR = (dateValue) => {
   if (!dateValue) return "";
-  const d = new Date(new Date(dateValue).getTime() - 3 * 60 * 60 * 1000);
+  const d = new Date(new Date(dateValue).getTime());
   return d.toLocaleDateString("pt-BR");
 };
 
+const formatDateBR2 = (dateString) => {
+  if (!dateString) return "";
+
+  // força ISO válido
+  const safe = dateString.replace(" ", "T");
+
+  const d = new Date(safe);
+
+  if (isNaN(d)) return dateString;
+
+  return d.toLocaleString("pt-BR");
+};
 function Dashboard({ org, onLogout }) {
   const scripts = useMemo(() => {
     if (org === "itsmy") {
@@ -177,6 +189,8 @@ function Dashboard({ org, onLogout }) {
       pedidoCtextil: p.pedidosty || "Falta Sincronizar",
       data_bling: formatDateBR(p.data_nota_bling),
       datapedido: formatDateBR(p.datapedido),
+      emissao_nota_ctextil: formatDateBR2(p.emissao_nota_ctextil),
+
     }));
   }, [pedidosFiltrados]);
 
@@ -253,7 +267,7 @@ function Dashboard({ org, onLogout }) {
 
     { field: "pedidoCtextil", headerName: "Pedido Ctextil", minWidth: 150, flex: 0.6 },
     { field: "numeronota_ctextil", headerName: "NFE Ctextil", minWidth: 140, flex: 0.55 },
-    { field: "emissao_nota_ctextil", headerName: "Data Ctextil", minWidth: 140, flex: 0.55 },
+    { field: "emissao_nota_ctextil", headerName: "Data Ctextil", minWidth: 160, flex: 0.55 },
   ],
   []
 );

@@ -45,7 +45,7 @@ def main():
             json_payload = montar_json_pedido(pedido, itens)
 
             response = requests.post(
-                url=os.getenv("ERP_API_URL"),
+                url=os.getenv("ERP_API_URL"), # type: ignore
                 json=json_payload,
                 headers={"Authorization": f"Bearer {os.getenv('ERP_API_TOKEN')}"}
             )
@@ -113,7 +113,7 @@ def main():
         print(f"Erro durante sincronização: {e}")
     finally:
         try:
-            conn.close()
+            conn.close() # type: ignore
         except:
             pass
         print("Conexão encerrada.")
