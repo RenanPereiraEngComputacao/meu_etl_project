@@ -1,25 +1,26 @@
 /**
- * index.js (REFATORADO)
+ * index.js
  *
- * ✅ Bling separado por banco (sem tenant/JWT nos endpoints Bling):
+ * Bling separado por banco (sem tenant/JWT nos endpoints Bling):
  *    - /bling1/*  -> usa getPostgresConnection()   (DB principal)
  *    - /bling2/*  -> usa getPostgresConnection2()  (DB secundário)
+ *    - /bling3/*  -> usa getPostgresConnection3()  (DB terciário)
  *
- * ✅ Callbacks separados:
+ * Callbacks separados:
  *    - /bling1/callback -> salva tokens no DB1
  *    - /bling2/callback -> salva tokens no DB2
+ *    - /bling3/callback -> salva tokens no DB3
  *
- * ✅ Mantém /api/* com JWT + resolveTenant (seu multi-tenant atual)
- * ✅ Corrige bug do /api/login duplicado
  *
- * IMPORTANTE:
- * - Configure no Bling dois redirect_uri:
+ * Bling  redirect_uri:
  *   1) http://localhost:3001/bling1/callback
  *   2) http://localhost:3001/bling2/callback
+ *   3) http://localhost:3001/bling3/callback
  *
- * - Seus scripts Python ficam simples:
+ * - Scripts Python:
  *   script DB1 -> chama /bling1/pedidos/vendas, /bling1/nfe, /bling1/nfe_detalhe
  *   script DB2 -> chama /bling2/pedidos/vendas, /bling2/nfe, /bling2/nfe_detalhe
+ *   script DB3 -> chama /bling3/pedidos/vendas, /bling3/nfe, /bling3/nfe_detalhe
  */
 
 require("dotenv").config();
@@ -58,9 +59,6 @@ function authenticateToken(req, res, next) {
 }
 
 // ============================================================================
-// LOGIN (NÃO USA TENANT) - CORRIGIDO (sem rota duplicada)
-// ============================================================================
-// ============================================================================
 // LOGIN (NÃO USA TENANT) - 1 ROTA SÓ (COM LOGS)
 // ============================================================================
 app.post("/api/login", async (req, res) => {
@@ -79,10 +77,9 @@ app.post("/api/login", async (req, res) => {
     // Login SEMPRE usa banco principal
     const pool = getPostgresConnection();
 
-    const result = await pool.query(
-      "SELECT * FROM users WHERE username = $1",
-      [username]
-    );
+    const result = await pool.query("SELECT * FROM users WHERE username = $1", [
+      username,
+    ]);
 
     if (result.rows.length === 0) {
       return res.status(400).json({ message: "Usuário não encontrado" });
@@ -102,11 +99,9 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({ message: "Senha incorreta" });
     }
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      JWT_SECRET,
-      { expiresIn: "24h" }
-    );
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
+      expiresIn: "24h",
+    });
 
     return res.json({ token });
   } catch (error) {
@@ -114,7 +109,6 @@ app.post("/api/login", async (req, res) => {
     return res.status(500).json({ message: "Erro interno do servidor" });
   }
 });
-
 
 // ============================================================================
 // BLING CONFIG
@@ -134,9 +128,7 @@ function getBlingApp(label) {
   const app = BLING_APPS[label];
 
   if (!app?.clientId || !app?.clientSecret) {
-    console.warn(
-      `⚠️ CLIENT_ID / CLIENT_SECRET não encontrados para ${label}`
-    );
+    console.warn(`⚠️ CLIENT_ID / CLIENT_SECRET não encontrados para ${label}`);
     throw new Error(`Configuração Bling inválida: ${label}`);
   }
 
@@ -154,14 +146,31 @@ function buildBasicAuth(label) {
 function createBlingRouter({ getPool, label, redirectUri, blingApp }) {
   const router = express.Router();
 
-  async function getValidToken() {
-    const pool = getPool();
+  // Lock simples para evitar "tempestade" de refresh com requests simultâneas
+  let refreshPromise = null;
 
+  async function getLastTokenRow(pool) {
     const result = await pool.query(
       "SELECT * FROM bling_tokens ORDER BY created_at DESC LIMIT 1"
     );
+    return result.rows[0] || null;
+  }
 
-    const tokenData = result.rows[0];
+  function isInvalidTokenError(err) {
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+
+    // Bling costuma mandar 401 com body { error: { type: 'invalid_token', ... } }
+    const type = data?.error?.type || data?.error?.error || data?.type;
+    const msg = data?.error?.message || data?.message;
+
+    return status === 401 || type === "invalid_token" || msg === "invalid_token";
+  }
+
+  async function getValidToken() {
+    const pool = getPool();
+
+    const tokenData = await getLastTokenRow(pool);
     if (!tokenData) throw new Error(`[${label}] Token Bling não encontrado`);
 
     const criadoEm = new Date(tokenData.created_at).getTime();
@@ -169,14 +178,15 @@ function createBlingRouter({ getPool, label, redirectUri, blingApp }) {
 
     if (!expirou) return tokenData.access_token;
 
-    return await refreshBlingToken(tokenData.refresh_token);
+    // se expirou pelo cálculo -> refresh
+    return await refreshBlingTokenLocked(tokenData.refresh_token);
   }
 
   async function refreshBlingToken(refreshToken) {
     const basicAuth = buildBasicAuth(blingApp);
 
     const { data } = await axios.post(
-      "https://www.bling.com.br/Api/v3/oauth/token",
+      "https://api.bling.com.br/Api/v3/oauth/token",
       new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: refreshToken,
@@ -201,39 +211,79 @@ function createBlingRouter({ getPool, label, redirectUri, blingApp }) {
     return data.access_token;
   }
 
-  async function blingRequest(method, endpoint, paramsOrData = null) {
-    const token = await getValidToken();
+  async function refreshBlingTokenLocked(refreshToken) {
+    if (!refreshPromise) {
+      refreshPromise = refreshBlingToken(refreshToken).finally(() => {
+        refreshPromise = null;
+      });
+    }
+    return refreshPromise;
+  }
 
-    const config = {
-      method,
-      url: `https://www.bling.com.br/Api/v3${endpoint}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+  async function blingRequest(method, endpoint, paramsOrData = null) {
+    const makeConfig = (accessToken) => {
+      const config = {
+        method,
+        url: `https://api.bling.com.br/Api/v3${endpoint}`,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      };
+
+      if (method.toUpperCase() === "GET") config.params = paramsOrData;
+      else config.data = paramsOrData;
+
+      return config;
     };
 
-    if (method.toUpperCase() === "GET") config.params = paramsOrData;
-    else config.data = paramsOrData;
+    // 1) tenta com token "válido" (cálculo local)
+    const token = await getValidToken();
 
-    return axios(config);
+    try {
+      return await axios(makeConfig(token));
+    } catch (err) {
+      // 2) se Bling disser invalid_token/401 -> força refresh e tenta 1x
+      if (isInvalidTokenError(err)) {
+        const pool = getPool();
+        const tokenRow = await getLastTokenRow(pool);
+
+        if (!tokenRow?.refresh_token) {
+          console.error(`❌ [${label}] invalid_token e não há refresh_token salvo.`);
+          throw err;
+        }
+
+        console.warn(`⚠️ [${label}] invalid_token detectado. Forçando refresh + retry...`);
+
+        const newAccessToken = await refreshBlingTokenLocked(
+          tokenRow.refresh_token
+        );
+
+        // retry único
+        return await axios(makeConfig(newAccessToken));
+      }
+
+      // outros erros seguem normal
+      throw err;
+    }
   }
 
   // --------------------------------------------------------------------------
   // (Opcional) Endpoint pra iniciar auth (só gera URL).
   // Você pode usar isso no front se quiser.
   // --------------------------------------------------------------------------
-router.get("/auth-url", (req, res) => {
-  const { clientId } = getBlingApp(blingApp);
+  router.get("/auth-url", (req, res) => {
+    const { clientId } = getBlingApp(blingApp);
 
-  const authUrl =
-    `https://www.bling.com.br/Api/v3/oauth/authorize` +
-    `?response_type=code` +
-    `&client_id=${encodeURIComponent(clientId)}` +
-    `&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    const authUrl =
+      `https://api.bling.com.br/Api/v3/oauth/authorize` +
+      `?response_type=code` +
+      `&client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-  res.json({ authUrl, redirect_uri: redirectUri, label, blingApp });
-});
+    res.json({ authUrl, redirect_uri: redirectUri, label, blingApp });
+  });
+
   // --------------------------------------------------------------------------
   // Callback (troca code por token e salva no DB desse router)
   // --------------------------------------------------------------------------
@@ -245,7 +295,7 @@ router.get("/auth-url", (req, res) => {
     }
 
     try {
-      const tokenUrl = "https://www.bling.com.br/Api/v3/oauth/token";
+      const tokenUrl = "https://api.bling.com.br/Api/v3/oauth/token";
       const basicAuth = buildBasicAuth(blingApp);
 
       const response = await axios.post(

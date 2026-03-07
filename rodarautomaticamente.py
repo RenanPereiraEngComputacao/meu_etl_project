@@ -69,11 +69,11 @@ def executar_script_attestoquemalagah():
 
 def executar_script_attestoqueitsmy():
     try:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de att_estoque_itsmy.py")
-        subprocess.run(["python", "c:/meu_etl_project/att_estoque_itsmy.py"], check=False)
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de att_estoque_itsmy.py\n")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de att_estoque_secundario.py")
+        subprocess.run(["python", "c:/meu_etl_project/att_estoque_secundario.py"], check=False)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de att_estoque_secundario.py\n")
     except Exception as e:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar att_estoque_itsmy.py: {e}")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar att_estoque_secundario.py: {e}")
 
 def libera_pedido():
     try:

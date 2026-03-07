@@ -89,8 +89,8 @@ function Dashboard({ org, onLogout }) {
   const scripts = useMemo(() => {
     if (org === "itsmy") {
       return [
-        { name: "att_estoque_itsmy.py", label: "Atualizar Estoque", icon: InventoryIcon },
-        { name: "att_produtos_itsmy.py", label: "Atualizar Produtos", icon: CategoryIcon },
+        { name: "att_estoque_secundario.py", label: "Atualizar Estoque", icon: InventoryIcon },
+        { name: "att_produtos_secundario.py", label: "Atualizar Produtos", icon: CategoryIcon },
         { name: "sync_order_secundaria.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
         { name: "listagempedido", label: "Listagem de Pedidos", icon: ListAltIcon },
       ];

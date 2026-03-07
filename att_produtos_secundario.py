@@ -46,4 +46,4 @@ if __name__ == "__main__":
     with contextlib.redirect_stdout(buffer):
         main()
 
-    registrar_log("att_produtos_itsmy.py", buffer.getvalue())
+    registrar_log("att_produtos_secundario.py", buffer.getvalue())

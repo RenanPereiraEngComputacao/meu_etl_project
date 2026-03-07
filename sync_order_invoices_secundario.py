@@ -34,11 +34,11 @@ def fetch_data(query, conn, params=None):
 # ================================
 # CONSULTA INVOICE NO ERP
 # ================================
-def consultar_invoices(order_id_erp, page=1):
+def consultar_invoices(order_id_erp, page=1, status="4"):
     try:
         response = requests.get(
             url=f"{ERP_API_BASE_URL}/api/v1/orders/{order_id_erp}/invoices",
-            params={"page": page},
+            params={"page": page, "status": status},
             headers={"Authorization": f"Bearer {ERP_API_TOKEN}"},
             timeout=30
         )
@@ -79,7 +79,7 @@ def main():
 
             print(f"Consultando invoice do pedido ERP: {idpedido_erp}")
 
-            payload = consultar_invoices(idpedido_erp, page=1)
+            payload = consultar_invoices(idpedido_erp, page=1, status="4")
             if not payload:
                 continue
 
