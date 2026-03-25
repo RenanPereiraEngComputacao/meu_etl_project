@@ -40,7 +40,7 @@ def consultar_invoices(order_id_erp, page=1, status="4"):
             url=f"{ERP_API_BASE_URL}/api/v1/orders/{order_id_erp}/invoices",
             params={"page": page, "status": status},
             headers={"Authorization": f"Bearer {ERP_API_TOKEN}"},
-            timeout=30
+            timeout=60
         )
 
         if response.status_code != 200:
