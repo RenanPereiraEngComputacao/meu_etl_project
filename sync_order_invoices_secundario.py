@@ -135,5 +135,5 @@ if __name__ == "__main__":
     with contextlib.redirect_stdout(buffer):
         main()
 
-    registrar_log("sync_order_invoices.py", buffer.getvalue())
+    registrar_log("sync_order_invoices_secundario.py", buffer.getvalue())
     

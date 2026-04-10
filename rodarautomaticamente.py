@@ -34,19 +34,7 @@ def tem_pedidos_nao_sincronizados_itsmy():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao verificar pedidos não sincronizados: {e}")
         return False
-    
-    
-def tem_pedidos_nao_liberados():
-    try:
-        conn = get_postgres_connection()
-        with contextlib.closing(conn.cursor()) as cursor:
-            cursor.execute("SELECT 1 FROM orders WHERE liberado = false LIMIT 1")
-            resultado = cursor.fetchone()
-        conn.close()
-        return resultado is not None
-    except Exception as e:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao verificar pedidos não liberados: {e}")
-        return False
+
 
 def executar_script_pedido():
     try:
@@ -58,6 +46,17 @@ def executar_script_pedido():
             print(f"[{datetime.now().strftime('%H:%M:%S')}] Nenhum pedido pendente. Ignorando sync_order.py.")
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order.py: {e}")
+
+def executar_script_pedido_secundario():
+    try:
+        if tem_pedidos_nao_sincronizados_itsmy():
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de sync_order_secundaria.py")
+            subprocess.run(["python", "c:/meu_etl_project/sync_order_secundaria.py"], check=False)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de sync_order_secundaria.py\n")
+        else:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Nenhum pedido pendente. Ignorando sync_order_secundaria.py.")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order_secundaria.py: {e}")
 
 def executar_script_attestoquemalagah():
     try:
@@ -75,16 +74,6 @@ def executar_script_attestoqueitsmy():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar att_estoque_secundario.py: {e}")
 
-def libera_pedido():
-    try:
-        if tem_pedidos_nao_liberados():
-             print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução do libera_pedido.py")
-             subprocess.run(["python", "c:/meu_etl_project/libera_pedido.py"], check=False)
-             print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução do libera_pedido.py\n")
-        else:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Nenhum pedido pendente. Ignorando libera_pedido.py.")
-    except Exception as e:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar libera_pedido.py: {e}")
 
 def preenche_email_telefone():
     try:
@@ -138,6 +127,7 @@ if __name__ == "__main__":
 
             if minuto % 10 == 0 and executado_pedido_minuto != minuto:
                 executar_script_pedido()
+                executar_script_pedido_secundario()
                 time.sleep(2)  
                 preenche_email_telefone()
                 bling_sync_docs()
@@ -148,6 +138,7 @@ if __name__ == "__main__":
 
             if minuto % 10 == 5 and executado_pedido_minuto != minuto:
                 executar_script_pedido()
+                executar_script_pedido_secundario()
                 time.sleep(2)  
                 preenche_email_telefone()
                 executado_pedido_minuto = minuto

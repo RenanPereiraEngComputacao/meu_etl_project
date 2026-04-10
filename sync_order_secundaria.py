@@ -63,11 +63,11 @@ def main():
 
                 with conn.cursor() as cursor:
                     cursor.execute(
-                        "UPDATE orders SET statussincronismo = TRUE, statusped = 'Pedido Recebido', pedidosty = %s WHERE idpedido = %s;",
-                        (numero_erp, pedido["idpedido"])
+                        "UPDATE orders SET statussincronismo = TRUE, statusped = 'Pedido Recebido', pedidosty = %s, idpedido_erp = %s WHERE idpedido = %s;",
+                        (numero_erp, idpedido_erp, pedido["idpedido"])
                     )
                 conn.commit()
-                print(f"Pedido {pedido['numeropedido']} sincronizado com sucesso. Número ERP: {numero_erp}")
+                print(f"Pedido {pedido['numeropedido']} sincronizado com sucesso. Número ERP: {numero_erp}, idpedido ERP: {idpedido_erp}")
             else:
                 
                 try:
