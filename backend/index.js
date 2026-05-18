@@ -194,6 +194,7 @@ function createBlingRouter({ getPool, label, redirectUri, blingApp }) {
       {
         headers: {
           Authorization: `Basic ${basicAuth}`,
+          "enable-jwt": "1",
           "Content-Type": "application/x-www-form-urlencoded",
         },
       }
@@ -227,6 +228,7 @@ function createBlingRouter({ getPool, label, redirectUri, blingApp }) {
         url: `https://api.bling.com.br/Api/v3${endpoint}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "enable-jwt": "1",
           "Content-Type": "application/json",
         },
       };
@@ -308,6 +310,7 @@ function createBlingRouter({ getPool, label, redirectUri, blingApp }) {
         {
           headers: {
             Authorization: `Basic ${basicAuth}`,
+            "enable-jwt": "1",
             "Content-Type": "application/x-www-form-urlencoded",
           },
         }

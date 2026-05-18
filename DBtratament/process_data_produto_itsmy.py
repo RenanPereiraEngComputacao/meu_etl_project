@@ -33,6 +33,7 @@ def insert_into_postgres_produto(data, observacoes, conn):
         # Tratamento da coluna MODO_LAVAR
         modo_original = (row.get("MODO_LAVAR") or "").strip().upper()
         descricao_raw = row.get("DESCRICAO_PRODUTO", "")
+        descricao= row.get("CARACTERISTICA_PRODUTO", "")
         descricao_sem_parenteses = re.sub(r"\s*\(.*?\)", "", descricao_raw).strip()
         descricao_sem_parenteses = re.sub(r"\s*\(.*?\)", "", descricao_raw).strip()
         descricao_sem_parenteses = (
@@ -85,7 +86,7 @@ def insert_into_postgres_produto(data, observacoes, conn):
             row["COLECAO_PRODUTO"],
             nome_formatado,
             descricaoso if descricaoso else "NÃO INFORMADO",
-            descricaocurta if descricaocurta else "NÃO INFORMADO",
+            descricao if descricao else "NÃO INFORMADO",
             descricaolonga if descricaolonga else "NÃO INFORMADO",
             palavraschave if palavraschave else "NÃO INFORMADO"
 
