@@ -115,6 +115,22 @@ def executar_script_atualizar_invoices_secundario():
     except Exception as e:
         print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order_invoices_secundario.py: {e}")
 
+def executar_script_pedido_shopee():
+    try:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de sync_order_shopee.py")
+            subprocess.run(["python", "c:/meu_etl_project/sync_order_shopee.py"], check=False)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de sync_order_shopee.py\n")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order_shopee.py: {e}")
+
+def executar_script_pedido_shopee_secundario():
+    try:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando execução de sync_order_shopee_secundario.py")
+            subprocess.run(["python", "c:/meu_etl_project/sync_order_shopee_secundario.py"], check=False)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Finalizou execução de sync_order_shopee_secundario.py\n")
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Erro ao executar sync_order_shopee_secundario.py: {e}")
+
 
 executado_pedido_minuto = None
 executado_estoque_minuto = None
@@ -126,6 +142,8 @@ if __name__ == "__main__":
             minuto = agora.minute
 
             if minuto % 10 == 0 and executado_pedido_minuto != minuto:
+                executar_script_pedido_shopee()
+                executar_script_pedido_shopee_secundario()
                 executar_script_pedido()
                 executar_script_pedido_secundario()
                 time.sleep(2)  
@@ -137,6 +155,8 @@ if __name__ == "__main__":
                 executado_pedido_minuto = minuto
 
             if minuto % 10 == 5 and executado_pedido_minuto != minuto:
+                executar_script_pedido_shopee()
+                executar_script_pedido_shopee_secundario()
                 executar_script_pedido()
                 executar_script_pedido_secundario()
                 time.sleep(2)  

@@ -76,7 +76,7 @@ def main():
                         params={
                             "page": 1,
                             "full_return": "true",
-                            "customer": 47070914000192,  # ou fixe se for sempre o mesmo
+                            "customer": 47070914000192,  
                             "presence_indicator": 0
                         },
                         headers={"Authorization": f"Bearer {os.getenv('ERP_API_TOKEN')}"}
