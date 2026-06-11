@@ -486,7 +486,7 @@ app.get("/api/logs", async (req, res) => {
 app.get("/api/list", async (req, res) => {
   try {
     const result = await req.db.query(
-      "SELECT * FROM orders ORDER BY idpedido DESC"
+      "SELECT * FROM orders ORDER BY  datapedido DESC NULLS LAST, idpedido DESC"
     );
     res.json(result.rows);
   } catch (error) {
