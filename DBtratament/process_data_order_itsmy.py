@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from DBconect.postgres_conn import get_postgres_connection2
+from decimal import Decimal
 
 load_dotenv()
 
@@ -38,9 +39,14 @@ def atualizar_barcodes_faltantes(itens, conn):
                     "UPDATE order_itens SET barcode = %s WHERE iditempedido = %s",
                     (novo_barcode, item["iditempedido"])
                 )
-                item["barcode"] = novo_barcode  # atualiza também no dict para uso no JSON
+                item["barcode"] = novo_barcode 
     conn.commit()
     cursor.close()
+
+def normalizar_valor_json(valor):
+    if isinstance(valor, Decimal):
+        return float(valor) 
+    return valor
 
 
 def montar_json_pedido(pedido, itens):
@@ -48,9 +54,15 @@ def montar_json_pedido(pedido, itens):
         items_json = []
         for item in itens:
             barcode = item["barcode"]
+            quantidade = normalizar_valor_json(item["quantidade"])
+            preco = normalizar_valor_json(item["precounitario"])
+            preco_erp = round(preco * 0.20)
+            if preco < 0.01:
+                preco = 0.01
+
             if not barcode:
-                # Busca no banco se estiver faltando
                 barcode = buscar_barcode_por_indexado(item["indexado"])
+
                 if not barcode:
                     raise ValueError(
                         f"Item sem barcode: indexado '{item['indexado']}' no pedido '{pedido['numeropedido']}'"
@@ -58,8 +70,8 @@ def montar_json_pedido(pedido, itens):
 
             items_json.append({
                 "barcode": barcode,
-                "order": item["quantidade"],
-                "price": PRECO_PADRAO_LOJA_ITSMY
+                "order": quantidade,
+                "price": preco_erp
             })
 
         return {
@@ -72,33 +84,3 @@ def montar_json_pedido(pedido, itens):
             "items": items_json,
             "installments": [{"days": 120}]
         }
-
-    elif pedido["tipopedido"] == "B2B":
-        items_json = []
-        for item in itens:
-            barcode = item["barcode"]
-            if not barcode:
-                barcode = buscar_barcode_por_indexado(item["indexado"])
-                if not barcode:
-                    raise ValueError(
-                        f"Item sem barcode: indexado '{item['indexado']}' no pedido '{pedido['numeropedido']}'"
-                    )
-            items_json.append({
-                "barcode": barcode,
-                "order": item["quantidade"],
-                "price": float(item["precounitario"])
-            })
-
-        return {
-            "async": True,
-            "type": "1MTE59",
-            "customer": pedido["cpfcnpjcliente"],
-            "seller": CNPJ_STYLEZEE,
-            "note": f"Pedido N°: {pedido['numeropedido']} | Cliente: {pedido['nomecliente']} | Obs: {pedido['observacao']}.",
-            "items": items_json
-        }
-
-    else:
-        raise ValueError(
-            f"Tipo de pedido não suportado: '{pedido['tipopedido']}' para o pedido ID {pedido['idpedido']}"
-        )
