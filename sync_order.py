@@ -121,6 +121,7 @@ def main():
 
 if __name__ == "__main__":
     buffer = io.StringIO()
+    
     with contextlib.redirect_stdout(buffer):
         main()
 

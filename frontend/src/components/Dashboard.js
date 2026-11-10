@@ -1,3 +1,4 @@
+import AnaliseVendas from "./AnaliseVendas";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
@@ -93,6 +94,7 @@ function Dashboard({ org, onLogout }) {
         { name: "att_produtos_secundario.py", label: "Atualizar Produtos", icon: CategoryIcon },
         { name: "sync_order_secundaria.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
         { name: "listagempedido", label: "Listagem de Pedidos", icon: ListAltIcon },
+        { name: "analisevendas", label: "Análise de Vendas", icon: ListAltIcon },
       ];
     }
 
@@ -103,6 +105,7 @@ function Dashboard({ org, onLogout }) {
       //{ name: "att_clientes.py", label: "Atualizar Clientes", icon: PeopleIcon },
       { name: "sync_order.py", label: "Sincronizar Pedidos", icon: ShoppingCartIcon },
       { name: "listagempedido", label: "Listagem de Pedidos", icon: ListAltIcon },
+      { name: "analisevendas", label: "Análise de Vendas", icon: ListAltIcon },
     ];
   }, [org]);
 
@@ -151,7 +154,7 @@ function Dashboard({ org, onLogout }) {
     if (!org) return;
 
     if (selectedScript === "listagempedido") fetchPedidos();
-    else fetchLogs();
+    else if (selectedScript !== "analisevendas") fetchLogs();
   }, [org, selectedScript, fetchLogs, fetchPedidos]);
 
   const runScript = async () => {
@@ -456,7 +459,9 @@ function Dashboard({ org, onLogout }) {
       >
         <Toolbar />
 
-        {selectedScript !== "listagempedido" ? (
+        {selectedScript === "analisevendas" ? (
+          <AnaliseVendas />
+        ) : selectedScript !== "listagempedido" ? (
           <>
             {/* Card fixo ações */}
             <Paper

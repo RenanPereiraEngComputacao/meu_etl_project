@@ -495,6 +495,141 @@ app.get("/api/list", async (req, res) => {
   }
 });
 
+// Inserir no index.js depois de app.use('/api', authenticateToken, resolveTenant)
+// e antes de app.listen(...). Não requer alterações no banco.
+app.get('/api/analise-vendas', async (req, res) => {
+  const { inicio, fim } = req.query;
+  const formato = /^\d{4}-\d{2}-\d{2}$/;
+  const dataValida = (s) => formato.test(s || '') && !Number.isNaN(Date.parse(`${s}T12:00:00Z`)) && new Date(`${s}T12:00:00Z`).toISOString().slice(0, 10) === s;
+  if (!dataValida(inicio) || !dataValida(fim) || inicio > fim) {
+    return res.status(400).json({ message: 'Intervalo de datas inválido.' });
+  }
+  try {
+    // A data de referência é created_at, no fuso horário comercial do Brasil.
+    // Classifica-se TODO o histórico antes de restringir ao período solicitado.
+    const sql = `
+      WITH base AS (
+        SELECT idpedido, nomecliente, created_at,
+          (created_at AT TIME ZONE 'America/Sao_Paulo')::date AS data_referencia,
+          NULLIF(regexp_replace(COALESCE(cpfcnpjcliente, ''), '[^0-9]', '', 'g'), '') AS cliente,
+          COALESCE(valorpedido::numeric, 0) AS valor
+        FROM orders
+      ),
+      historico AS (
+        SELECT *,
+          ROW_NUMBER() OVER (PARTITION BY cliente ORDER BY created_at ASC, idpedido ASC) AS numero_compra,
+          MIN(data_referencia) OVER (PARTITION BY cliente) AS primeira_data
+        FROM base
+        WHERE cliente IS NOT NULL AND created_at IS NOT NULL
+      ),
+      periodo AS (
+        SELECT * FROM historico
+        WHERE data_referencia BETWEEN $1::date AND $2::date
+      ),
+      resumo AS (
+        SELECT COUNT(*)::int AS total_pedidos,
+          COUNT(*) FILTER (WHERE numero_compra = 1)::int AS pedidos_primeira,
+          COUNT(*) FILTER (WHERE numero_compra > 1)::int AS pedidos_recompra,
+          COALESCE(SUM(valor), 0)::numeric AS valor_total,
+          COALESCE(SUM(valor) FILTER (WHERE numero_compra = 1), 0)::numeric AS valor_primeira,
+          COALESCE(SUM(valor) FILTER (WHERE numero_compra > 1), 0)::numeric AS valor_recompra,
+          COUNT(DISTINCT cliente)::int AS clientes_total,
+          COUNT(DISTINCT cliente) FILTER (WHERE primeira_data BETWEEN $1::date AND $2::date)::int AS clientes_novos,
+          COUNT(DISTINCT cliente) FILTER (WHERE primeira_data < $1::date)::int AS clientes_recorrentes
+        FROM periodo
+      ),
+      top_clientes AS (
+        SELECT cliente AS documento,
+          (ARRAY_AGG(NULLIF(TRIM(nomecliente), '') ORDER BY created_at DESC, idpedido DESC))[1] AS nome,
+          COUNT(*)::int AS pedidos,
+          COALESCE(SUM(valor), 0)::numeric AS valor_total
+        FROM periodo
+        GROUP BY cliente
+        ORDER BY valor_total DESC, pedidos DESC, cliente ASC
+        LIMIT 10
+      )
+      SELECT row_to_json(resumo) AS resumo,
+        (SELECT COALESCE(json_agg(top_clientes ORDER BY valor_total DESC, pedidos DESC, documento ASC), '[]'::json) FROM top_clientes) AS top_clientes,
+        (SELECT COUNT(*)::int FROM base WHERE cliente IS NULL AND data_referencia BETWEEN $1::date AND $2::date) AS sem_documento,
+        (SELECT COUNT(*)::int FROM base WHERE created_at IS NULL) AS sem_data_historico
+      FROM resumo
+    `;
+    const result = await req.db.query(sql, [inicio, fim]);
+    const row = result.rows[0];
+    const r = row.resumo;
+    const n = (v) => Number(v || 0);
+    const taxa = (parte, total) => n(total) ? +(100 * n(parte) / n(total)).toFixed(2) : 0;
+    res.json({
+      periodo: { inicio, fim, campoData: 'created_at', fuso: 'America/Sao_Paulo' },
+      pedidos: {
+        total: n(r.total_pedidos), primeira: n(r.pedidos_primeira), recompra: n(r.pedidos_recompra),
+        valorTotal: n(r.valor_total), valorPrimeira: n(r.valor_primeira), valorRecompra: n(r.valor_recompra),
+        taxaPrimeira: taxa(r.pedidos_primeira, r.total_pedidos), taxaRecompra: taxa(r.pedidos_recompra, r.total_pedidos),
+        taxaValorPrimeira: taxa(r.valor_primeira, r.valor_total), taxaValorRecompra: taxa(r.valor_recompra, r.valor_total)
+      },
+      clientes: {
+        total: n(r.clientes_total), novos: n(r.clientes_novos), recorrentes: n(r.clientes_recorrentes),
+        taxaNovos: taxa(r.clientes_novos, r.clientes_total), taxaRecorrentes: taxa(r.clientes_recorrentes, r.clientes_total)
+      },
+      topClientes: (row.top_clientes || []).map(c => ({
+        documento: c.documento, nome: c.nome || 'Cliente sem nome',
+        pedidos: n(c.pedidos), valorTotal: n(c.valor_total)
+      })),
+      excluidos: { semDocumento: n(row.sem_documento), semDataHistorico: n(row.sem_data_historico) }
+    });
+  } catch (error) {
+    console.error('Erro analise-vendas:', error);
+    res.status(500).json({ message: 'Erro ao consultar análise de vendas.' });
+  }
+});
+
+
+// Ranking independente do filtro de datas: todo o histórico da empresa selecionada.
+// Usa o mesmo middleware JWT + tenant das demais rotas /api.
+app.get('/api/analise-vendas/top-clientes', async (req, res) => {
+  try {
+    const sql = `
+      WITH base AS (
+        SELECT
+          NULLIF(regexp_replace(COALESCE(cpfcnpjcliente, ''), '[^0-9]', '', 'g'), '') AS documento,
+          NULLIF(BTRIM(nomecliente), '') AS nome,
+          idpedido,
+          created_at,
+          COALESCE(valorpedido::numeric, 0) AS valor
+        FROM orders
+      ), ranking AS (
+        SELECT documento,
+          (ARRAY_AGG(nome ORDER BY created_at DESC NULLS LAST, idpedido DESC)
+            FILTER (WHERE nome IS NOT NULL))[1] AS nome,
+          COUNT(*)::int AS pedidos,
+          SUM(valor)::numeric AS valor_total
+        FROM base
+        WHERE documento IS NOT NULL
+        GROUP BY documento
+        ORDER BY valor_total DESC, pedidos DESC, documento ASC
+        LIMIT 10
+      )
+      SELECT documento, COALESCE(nome, 'Cliente sem nome') AS nome,
+             pedidos, valor_total
+      FROM ranking
+      ORDER BY valor_total DESC, pedidos DESC, documento ASC
+    `;
+    const result = await req.db.query(sql);
+    return res.json({
+      escopo: 'historico_completo',
+      topClientes: result.rows.map(r => ({
+        documento: r.documento,
+        nome: r.nome,
+        pedidos: Number(r.pedidos),
+        valorTotal: Number(r.valor_total)
+      }))
+    });
+  } catch (error) {
+    console.error('Erro top clientes histórico:', error);
+    return res.status(500).json({ message: 'Erro ao consultar Top 10 histórico.' });
+  }
+});
+
 // ============================================================================
 // SERVER
 // ============================================================================
