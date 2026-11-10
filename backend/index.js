@@ -507,53 +507,99 @@ app.get('/api/analise-vendas', async (req, res) => {
   try {
     // A data de referência é created_at, no fuso horário comercial do Brasil.
     // Classifica-se TODO o histórico antes de restringir ao período solicitado.
+    
     const sql = `
       WITH base AS (
-        SELECT idpedido, nomecliente, created_at,
+        SELECT
+          idpedido,
+          nomecliente,
+          created_at,
           (created_at AT TIME ZONE 'America/Sao_Paulo')::date AS data_referencia,
-          NULLIF(regexp_replace(COALESCE(cpfcnpjcliente, ''), '[^0-9]', '', 'g'), '') AS cliente,
+          NULLIF(
+            regexp_replace(COALESCE(cpfcnpjcliente, ''), '[^0-9]', '', 'g'),
+            ''
+          ) AS cliente,
           COALESCE(valorpedido::numeric, 0) AS valor
         FROM orders
+        WHERE COALESCE(observacao, '') NOT ILIKE '%Shopee%'
       ),
       historico AS (
         SELECT *,
-          ROW_NUMBER() OVER (PARTITION BY cliente ORDER BY created_at ASC, idpedido ASC) AS numero_compra,
-          MIN(data_referencia) OVER (PARTITION BY cliente) AS primeira_data
+          ROW_NUMBER() OVER (
+            PARTITION BY cliente
+            ORDER BY created_at ASC, idpedido ASC
+          ) AS numero_compra,
+          MIN(data_referencia) OVER (
+            PARTITION BY cliente
+          ) AS primeira_data
         FROM base
-        WHERE cliente IS NOT NULL AND created_at IS NOT NULL
+        WHERE cliente IS NOT NULL
+          AND created_at IS NOT NULL
       ),
       periodo AS (
-        SELECT * FROM historico
+        SELECT *
+        FROM historico
         WHERE data_referencia BETWEEN $1::date AND $2::date
       ),
       resumo AS (
-        SELECT COUNT(*)::int AS total_pedidos,
+        SELECT
+          COUNT(*)::int AS total_pedidos,
           COUNT(*) FILTER (WHERE numero_compra = 1)::int AS pedidos_primeira,
           COUNT(*) FILTER (WHERE numero_compra > 1)::int AS pedidos_recompra,
           COALESCE(SUM(valor), 0)::numeric AS valor_total,
           COALESCE(SUM(valor) FILTER (WHERE numero_compra = 1), 0)::numeric AS valor_primeira,
           COALESCE(SUM(valor) FILTER (WHERE numero_compra > 1), 0)::numeric AS valor_recompra,
           COUNT(DISTINCT cliente)::int AS clientes_total,
-          COUNT(DISTINCT cliente) FILTER (WHERE primeira_data BETWEEN $1::date AND $2::date)::int AS clientes_novos,
-          COUNT(DISTINCT cliente) FILTER (WHERE primeira_data < $1::date)::int AS clientes_recorrentes
+          COUNT(DISTINCT cliente) FILTER (
+            WHERE primeira_data BETWEEN $1::date AND $2::date
+          )::int AS clientes_novos,
+          COUNT(DISTINCT cliente) FILTER (
+            WHERE primeira_data < $1::date
+          )::int AS clientes_recorrentes
         FROM periodo
       ),
       top_clientes AS (
-        SELECT cliente AS documento,
-          (ARRAY_AGG(NULLIF(TRIM(nomecliente), '') ORDER BY created_at DESC, idpedido DESC))[1] AS nome,
+        SELECT
+          cliente AS documento,
+          (
+            ARRAY_AGG(
+              NULLIF(TRIM(nomecliente), '')
+              ORDER BY created_at DESC, idpedido DESC
+            )
+          )[1] AS nome,
           COUNT(*)::int AS pedidos,
           COALESCE(SUM(valor), 0)::numeric AS valor_total
-        FROM periodo
+        FROM historico
         GROUP BY cliente
         ORDER BY valor_total DESC, pedidos DESC, cliente ASC
         LIMIT 10
       )
-      SELECT row_to_json(resumo) AS resumo,
-        (SELECT COALESCE(json_agg(top_clientes ORDER BY valor_total DESC, pedidos DESC, documento ASC), '[]'::json) FROM top_clientes) AS top_clientes,
-        (SELECT COUNT(*)::int FROM base WHERE cliente IS NULL AND data_referencia BETWEEN $1::date AND $2::date) AS sem_documento,
-        (SELECT COUNT(*)::int FROM base WHERE created_at IS NULL) AS sem_data_historico
+      SELECT
+        row_to_json(resumo) AS resumo,
+        (
+          SELECT COALESCE(
+            json_agg(
+              top_clientes
+              ORDER BY valor_total DESC, pedidos DESC, documento ASC
+            ),
+            '[]'::json
+          )
+          FROM top_clientes
+        ) AS top_clientes,
+        (
+          SELECT COUNT(*)::int
+          FROM base
+          WHERE cliente IS NULL
+            AND data_referencia BETWEEN $1::date AND $2::date
+        ) AS sem_documento,
+        (
+          SELECT COUNT(*)::int
+          FROM base
+          WHERE created_at IS NULL
+        ) AS sem_data_historico
       FROM resumo
     `;
+
     const result = await req.db.query(sql, [inicio, fim]);
     const row = result.rows[0];
     const r = row.resumo;
